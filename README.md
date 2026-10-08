@@ -2,7 +2,8 @@
 
 This is the machine-checked development behind the article "A Gradual
 Probabilistic Lambda Calculus" (Matías Toro, Federico Olmedo and Wenjia Ye),
-submitted to the Journal of Functional Programming. Every
+available at <https://arxiv.org/abs/2604.05246>, which extends the OOPSLA 2023
+paper of the same title (<https://doi.org/10.1145/3586036>). Every
 numbered lemma and theorem of the article, in the body and in the appendices
 (Lemmas 1–67, Theorems 1–8), is proved here against the definitions of the
 article. The tables below map each numbered definition, lemma and theorem of
