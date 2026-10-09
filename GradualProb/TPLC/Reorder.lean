@@ -35,7 +35,7 @@ simple-type direction of Lemma 34.
 
 ## Reading guide
 
-`∥` is the witness construction `W_{id₌}` of `TPLC/Witness`, so its cell API
+`∥` is the witness construction `W_{id₌}` of `TPLC/Witness`, so its entry API
 (the provenance tags `reorderDL`/`reorderDR`, the solutions of its formula,
 definedness, well-formedness and reductivity at distribution types) is the
 instance of the generic one at the carrier predicate `Eq`, exactly as the
@@ -56,34 +56,34 @@ open Classical
 /-! ## The carrier of `∥`
 
 The entries of `reorderD D1 D2` are indexed by an enumeration of the pairs of
-equal operand entries (`liveK Eq`), the cells of the distribution clause of
-Definition 11. `reorderCell` reads a cell as its pair and `reorderDL`/`reorderDR`
+equal operand entries (`liveK Eq`), the entries of the distribution clause of
+Definition 11. `reorderCell` reads an entry as its pair and `reorderDL`/`reorderDR`
 are the two components; the reading is injective and reaches every pair of
-equal entries. All of it is the cell API of `TPLC/Witness` at `Eq`. -/
+equal entries. All of it is the entry API of `TPLC/Witness` at `Eq`. -/
 
-/-- The cells of `∥`, read as pairs of entries, are distinct. -/
+/-- The entries of `∥`, read as pairs of operand entries, are distinct. -/
 theorem reorderCell_injective (D1 D2 : FDist) : Function.Injective (reorderCell D1 D2) :=
   witnessCell_injective Eq D1 D2
 
-/-- Every pair of equal entries is a cell of `∥`. -/
+/-- Every pair of equal entries is an entry of `∥`. -/
 theorem reorderCell_range {D1 D2 : FDist} {i : Fin D1.n} {j : Fin D2.n}
     (h : D1.ty i = D2.ty j) : (i, j) ∈ Set.range (reorderCell D1 D2) :=
   witnessCell_range h
 
-/-- A cell of `reorderD` pairs equal entries. -/
+/-- An entry of `reorderD` pairs equal operand entries. -/
 theorem reorderD_cell_eq (D1 D2 : FDist) (c : Fin (reorderD D1 D2).n) :
     D1.ty (reorderDL D1 D2 c) = D2.ty (reorderDR D1 D2 c) :=
   witnessCell_prop Eq D1 D2 c
 
-/-- The entry of a cell of `∥` is the simple reordering evidence of the operand
+/-- The type of an entry of `∥` is the simple reordering evidence of the operand
 entries named by its tags. -/
 theorem reorderD_ty' (D1 D2 : FDist) (c : Fin (reorderD D1 D2).n) :
     (reorderD D1 D2).ty c
       = (reorderTy (D1.ty (reorderDL D1 D2 c)) (D2.ty (reorderDR D1 D2 c))).getD .unk := by
   cases D1; cases D2; rfl
 
-/-- The solutions of the formula of `∥`, without the existential: a cell
-weighting solves it iff its push-forwards along the two tags solve the
+/-- The solutions of the formula of `∥`, without the existential: a weight
+vector on the entries solves it iff its push-forwards along the two tags solve the
 operands and it is nonnegative. -/
 theorem reorderD_C_iff (D1 D2 : FDist) (w : Fin (reorderD D1 D2).n → ℝ) :
     (reorderD D1 D2).C w ↔
@@ -112,8 +112,8 @@ theorem reorderTy_self_isSome : ∀ (σ : FTy), (reorderTy σ σ).isSome
       obtain ⟨m, hm⟩ := Option.isSome_iff_exists.mp (reorderTy_self_isSome s)
       simp only [reorderTy, hm, Option.isSome_some]
 
-/-- `∥` is defined on equal simple types (the form used at carrier
-cells). -/
+/-- `∥` is defined on equal simple types (the form used at the entries of the
+carrier). -/
 theorem reorderTy_eq_isSome {σ τ : FTy} (h : σ = τ) : (reorderTy σ τ).isSome := by
   subst h; exact reorderTy_self_isSome σ
 
@@ -130,14 +130,16 @@ theorem reord_reorderTy_isSome : ∀ {σ τ : FTy}, σ =ʳ τ → (σ ∥ τ).is
         (reord_reorderTy_isSome (EReordTy.symm hs))
       simp only [reorderTy, hs_eq, Option.isSome_some]
 
-/-- A cell of `reorderD` pairs `=ʳ`-related entries, for a well-formed left operand. -/
+/-- An entry of `reorderD` pairs `=ʳ`-related operand entries, for a well-formed
+left operand. -/
 theorem reorderD_cell_live {D1 D2 : FDist} (hg1 : GoodD D1)
     (c : Fin (reorderD D1 D2).n) :
     EReordTy (D1.ty (reorderDL D1 D2 c)) (D2.ty (reorderDR D1 D2 c)) :=
   ereordTy_of_eq (hg1.tys _) (reorderD_cell_eq D1 D2 c)
 
-/-- The entry of a cell of `∥`, as a `some`: the simple reordering evidence of
-the two equal entries a cell comes from is defined, and it is the entry. -/
+/-- The type of an entry of `∥`, as a `some`: the simple reordering evidence of
+the two equal entries the entry comes from is defined, and it is the type of
+the entry. -/
 theorem reorderD_ty_spec (D1 D2 : FDist) (c : Fin (reorderD D1 D2).n) :
     reorderTy (D1.ty (reorderDL D1 D2 c)) (D2.ty (reorderDR D1 D2 c))
       = some ((reorderD D1 D2).ty c) := by
@@ -185,7 +187,7 @@ theorem reorderD_sat_iff_ereordD {D1 D2 : FDist} :
 `∥` is below both operands in runtime precision; the results are stated once
 for the operand that `π` picks. At distribution types it is tag-guidedly
 reductive (`TagPrec`) along the provenance tag `π` (`reorderDL` or `reorderDR`,
-through `tagPrec_witness`, with the simple-type case at each cell),
+through `tagPrec_witness`, with the simple-type case at each entry),
 and runtime precision follows by `eprecD_of_tagPrec`. Composed with Lemma 8 by
 transitivity of runtime precision, this lets an evidence for a reordering
 compose with an evidence for a consistency. -/
@@ -225,8 +227,8 @@ theorem eprec_reorderTy (π : Side) : ∀ {σ τ m : FTy}, GoodTy σ → GoodTy 
               (eprecD_of_tagPrec (tagPrec_reorderD π hgE1 hgE2) fun _ => reorderD_C_nonneg)
   termination_by structural σ τ m hg1 hg2 hc hm => σ
 /-- `∥` is tag-guidedly reductive into its operand `π` along the provenance
-tag `π`: every carrier cell pairs equal entries, so its entry is below the
-entry of that operand, and the push-forward along the tag is a marginal clause
+tag `π`: every entry of the carrier pairs equal entries, so its type is below
+the entry of that operand, and the push-forward along the tag is a marginal clause
 of the formula of `∥`. -/
 theorem tagPrec_reorderD (π : Side) {D1 D2 : FDist} (hg1 : GoodD D1) (hg2 : GoodD D2) :
     TagPrec (reorderD D1 D2) (π.pick D1 D2) (witnessTag Eq D1 D2 π) :=
@@ -341,24 +343,24 @@ theorem tagReorderTy_toF : ∀ (t1 t2 : FTy),
       rw [toF_getD_unk, tagReorderTy_toF]
 end
 
-/-! ### The cells of the tagged `∥` -/
+/-! ### The entries of the tagged `∥` -/
 
-/-- The entry of a cell of `tagReorderD D1 D2` is the tagged reordering
-evidence of the operand entries named by its tags. -/
+/-- The simple evidence of an entry of `tagReorderD D1 D2` is the tagged
+reordering evidence of the operand entries named by its tags. -/
 theorem tagReorderD_ty' (D1 D2 : FDist) (c : Fin (tagReorderD D1 D2).n) :
     (tagReorderD D1 D2).ty c
       = (tagReorderTy (D1.ty (reorderDL D1 D2 c)) (D2.ty (reorderDR D1 D2 c))).getD .unk := by
   cases D1; cases D2; rfl
 
-/-- The tagged entry of a cell of `tagReorderD`, as a `some`. -/
+/-- The simple evidence of an entry of `tagReorderD`, as a `some`. -/
 theorem tagReorderD_ty_spec (D1 D2 : FDist) (c : Fin (tagReorderD D1 D2).n) :
     tagReorderTy (D1.ty (reorderDL D1 D2 c)) (D2.ty (reorderDR D1 D2 c))
       = some ((tagReorderD D1 D2).ty c) := by
   rw [tagReorderD_ty']
   exact some_getD_of_map_toF ((tagReorderTy_toF _ _).trans (reorderD_ty_spec D1 D2 c))
 
-/-- The erasure of the entry of a cell of `tagReorderD D1 D2` is the entry of
-`reorderD D1 D2`. -/
+/-- The erasure of the simple evidence of an entry of `tagReorderD D1 D2` is the
+type of the same entry of `reorderD D1 D2`. -/
 theorem tagReorderD_ty_toF (D1 D2 : FDist) (c : Fin (tagReorderD D1 D2).n) :
     ((tagReorderD D1 D2).ty c).toF = (reorderD D1 D2).ty c := by
   rw [tagReorderD_ty', toF_getD_unk, tagReorderTy_toF, reorderD_ty']
@@ -390,7 +392,7 @@ theorem hvtag_tagReorderTy : ∀ {σ1 σ2 : FTy}, GoodTy σ1 → GoodTy σ2 →
           rfl
 /-- Lemma 40 (validity of the routing evidence), item 1, distribution types: the
 tagged `∥` of two well-formed distribution types is hereditarily valid on both
-sides: every carrier cell pairs equal entries. -/
+sides: every entry of the carrier pairs equal entries. -/
 theorem hvalid_tagReorderD : ∀ {D1 D2 : FDist}, GoodD D1 → GoodD D2 →
     D1 ∥ᵗ D2 ⊩[.l] D1 ∧ D1 ∥ᵗ D2 ⊩[.r] D2
   | .mk _ _ _, .mk _ _ _, hg1, hg2 =>
@@ -511,7 +513,7 @@ greatest lower bound of the meet), and the support condition is the
 simple-type statement. -/
 
 /-- The coupling part of the greatest-lower-bound property of `∥`: the
-coupling it produces sends each entry of `X` only to cells of `∥` whose left
+coupling it produces sends each entry of `X` only to entries of `∥` whose left
 tag (`reorderDL`) is related to it by the input coupling `R1`. The precision
 of the entries is added in `eprec_reorderD_glb` and
 `eprec_reorderD_glb_tags`. -/
@@ -573,7 +575,7 @@ end
 
 /-- Lemma 48 (greatest lower bound of reordering), tag-aware form of
 `eprec_reorderD_glb`: the coupling it produces sends each entry of `X` only to
-cells of `∥` whose left tag (`reorderDL`, the runtime operand) is related to it
+entries of `∥` whose left tag (`reorderDL`, the runtime operand) is related to it
 by the input coupling `R1`. The routed cases of the dynamic gradual guarantee
 instantiate `R1` with the relation between values given by the induction
 hypothesis. -/

@@ -27,7 +27,7 @@ diverges.
 The module starts with the refinement congruences of the type operators, the
 typing of configurations (`DConfHasTy`) and the runtime type of each
 configuration operator.  Then come the coercion of a value (`Val.coerce`),
-Lemma 38, the typing of the per-cell coercions of the routed rules (Dlet) and
+Lemma 38, the typing of the coercions at each entry of the routed rules (Dlet) and
 (D::μ), and the assembler of the `let` result (`refDist_wsum_letSem`), which
 mixes solutions of convex formulas (`convexC_wsum_of_sat`) and is the product
 coupling `Lift.sigmaFin`.
@@ -426,12 +426,12 @@ theorem hasTy_subst0_tm {Γ : List FTy} {m : Tm} {D : FDist} {τ : FTy} {w : Val
   hasTy_subst_tm m (Δ := []) hw h
 
 
-/-! ### The routed rules: every cell's coercion is well typed
+/-! ### The routed rules: the coercion at every entry is well typed
 
-The evidence facts hold at every cell, so each per-cell coercion of (Dlet) and
+The evidence facts hold at every entry, so the coercion at each entry of (Dlet) and
 (D::μ) is well typed without consuming any satisfiability.  For the routing
-evidence `tagReorderD` that both rules compute, the facts are derived cell by
-cell from the goodness of the entry types alone (`tagReorderD_cell`). -/
+evidence `tagReorderD` that both rules compute, the facts are derived entry by
+entry from the goodness of the entry types alone (`tagReorderD_cell`). -/
 
 /-- The coercion of a well-typed value is well typed at the target type: by
 the meet's reductivity when the composition succeeds, and as an error at the
@@ -448,7 +448,7 @@ theorem Val.coerce_typed {e : TagTy} {v w : Val} {σv σt : FTy}
     · exact .ascRaw hu (hetransTy_invariant hev1 hev2 hge1 hg2 hmeet) hgε3 hgt
     · exact .err hgt
 
-/-- Lemma 39 (one-step coercion of a value): a fired per-cell coercion is well
+/-- Lemma 39 (one-step coercion of a value): a fired coercion at a single entry is well
 typed at the target entry. -/
 theorem cell_coercion_typed {e : TagTy} {v w : Val} {σt : FTy}
     (hv : ⊢ v : v.tyEntry)
@@ -457,8 +457,8 @@ theorem cell_coercion_typed {e : TagTy} {v w : Val} {σt : FTy}
     ⊢ w : σt :=
   Val.coerce_typed hv hev2 hg2 hgt (red_ascV_iff.1 hstep)
 
-/-- Per-cell facts of the routing evidence `tagReorderD D1 D2`, from the goodness
-of the entry types alone: each carrier cell pairs `=ʳ`-related entries, so its
+/-- Entrywise facts of the routing evidence `tagReorderD D1 D2`, from the goodness
+of the entry types alone: each index of the carrier pairs `=ʳ`-related entries, so its
 entry is the tagged reordering of the pair, hereditarily valid for it and with a
 good erasure. -/
 theorem tagReorderD_cell {D1 D2 : FDist} (hg1 : ∀ i, GoodTy (D1.ty i))
@@ -473,8 +473,8 @@ theorem tagReorderD_cell {D1 D2 : FDist} (hg1 : ∀ i, GoodTy (D1.ty i))
   rw [tagReorderD_ty_toF]
   exact goodTy_reorderTy (hg1 _) (hg2 _) hRD (reorderD_ty_spec D1 D2 c)
 
-/-- Left half of the per-cell validity of `tagReorderD`, in the index form the
-composition consumes (`hemeetD_entry`): the left tag of a cell is the index of
+/-- Left half of the entrywise validity of `tagReorderD`, in the index form the
+composition consumes (`hemeetD_entry`): the left tag of an entry is the index of
 its left projection. -/
 theorem tagReorderD_cellL {D1 D2 : FDist} (hg1 : ∀ i, GoodTy (D1.ty i))
     (hg2 : ∀ j, GoodTy (D2.ty j)) (i : Fin (tagReorderD D1 D2).n)
@@ -506,8 +506,8 @@ theorem tagReorderD_pushR {D1 D2 : FDist} {w : Fin (tagReorderD D1 D2).n → ℝ
     D2.C (pushfwd (reorderDR D1 D2) w) :=
   ((reorderD_C_iff D1 D2 w).1 hw).2.1
 
-/-- In (Dlet) the coercion of each cell is well typed at the target entry.  The
-evidence facts are computed cell by cell, so only the goodness of the entry
+/-- In (Dlet) the coercion at each entry is well typed at the target entry.  The
+evidence facts are computed entry by entry, so only the goodness of the entry
 types of the bound term's runtime type is consumed. -/
 theorem dlet_cell_typed {V : DConf} {μ : FDist}
     (hVvals : ∀ i, HasTyV [] (V.val i) ((V.val i).tyEntry)) (hgμ : GoodD μ)
@@ -569,11 +569,11 @@ theorem dapp_contractum_typed {ε : TagTy} {σ' σa σX : FTy} {mb : Tm}
                   ⟨hvtag_flip hs2, hvtag_flip hs1⟩ hgsf hgσ'2 hco
                 exact subErr_typed hwt (.ascT hbody ⟨hD1, hD2⟩ hgD hgDres) hgDres
 
-/-- The per-cell coercion of (D::μ) is well typed.  The facts about the
-computed evidence are read cell by cell: the left side from `tagReorderD`
+/-- The coercion at each entry of (D::μ) is well typed.  The facts about the
+computed evidence are read entry by entry: the left side from `tagReorderD`
 (`tagReorderD_cellL`), the right side from the validity of the evidence `εd`
 written in the term (which typing guarantees), and the composition
-`hemeetD_entry` joins them.  Its per-cell consistency is free, since the
+`hemeetD_entry` joins them.  Its consistency at each entry is free, since the
 carrier of the meet consists of consistent pairs. -/
 theorem dascD_cell_typed {V : DConf} {μ μb : FDist} {εd : TagD}
     (hVvals : ∀ i, HasTyV [] (V.val i) ((V.val i).tyEntry)) (hgμ : GoodD μ)
@@ -595,9 +595,9 @@ theorem dascD_cell_typed {V : DConf} {μ μb : FDist} {εd : TagD}
       (TagD.goodTy_entry hgεd) _)
     (hgμb.tys _) hstep
 
-/-- The (D::μ) case of Lemma 42: the mixture of the per-cell coercions is well
-typed at the target, each cell routed to the entry its right tag names.
-Only per-cell facts and the right marginal of the computed evidence
+/-- The (D::μ) case of Lemma 42: the mixture of the coercions at the entries is well
+typed at the target, each entry routed to the entry of the target type its right tag names.
+Only entrywise facts and the right marginal of the computed evidence
 (`emeetD_pushR`) are consumed: every solution of the composed formula is
 related to its push-forward along the right tags (`Lift.pushfwd`). -/
 theorem dascD_safety {V : DConf} {μ μb : FDist} {εd : TagD}
@@ -643,7 +643,7 @@ a solution `ω`, the target solution is that push-forward for the bound term
 entries and, per entry, the mixture weighted by `ω` of the solutions that the
 refinements of the branches provide (`convexC_wsum_of_sat`).  The coupling is
 the product (`Lift.sigmaFin`) of the coupling of `ω` with its push-forward,
-which sends each cell to the entry it routes to, with the couplings of the
+which sends each summand to the entry it routes to, with the couplings of the
 branches. -/
 
 
@@ -661,11 +661,11 @@ theorem refDist_wsum_letSem {μ : FDist} {F : Fin μ.n → FDist}
     RefDist (DConf.wsum W Vk).confF (letSem μ F) := by
   refine RefDist.intro ?_
   rintro x ⟨ω, hω, b, hb, hx⟩
-  -- the routing coupling: all the weight of the cell `k` goes to the entry `κ k`
+  -- the routing coupling: all the weight of the summand `k` goes to the entry `κ k`
   have hu := isCoupling_pushfwd κ (hWnn ω hω)
   have hsu : Supp (fun k a => κ k = a ∧ 0 < ω k) (fun k a => if κ k = a then ω k else 0) :=
     fun _ _ hpos => pos_of_ite_pos hpos
-  -- for a cell of positive weight, the refinement of its branch gives a solution
+  -- for a summand of positive weight, the refinement of its branch gives a solution
   -- of the branch type of the entry it routes to
   have hex : ∀ k a, ∃ c : Fin (F a).n → ℝ, κ k = a ∧ 0 < ω k →
       (F a).C c ∧ Lift (fun i l => ((Vk k).val i).tyEntry = (F a).ty l) (b k) c := by
@@ -743,7 +743,7 @@ theorem gr_errAt {μ : FDist} (hg : GoodD μ) :
 /-- Lemma 41 (refinement through the type operators): goodness of the runtime
 type of a routed mixture, from an abstract weight formula: nonnegative weights
 summing to one on every solution, a convex formula, and guarded branch goodness.
-A cell that no solution gives positive weight contributes no constraint and only
+A summand that no solution gives positive weight contributes no constraint and only
 needs good entry types. Satisfiability of the mixture's formula is a hypothesis.
 -/
 theorem goodD_confF_wsum {K : ℕ} {W : (Fin K → ℝ) → Prop} {Vk : Fin K → DConf}
@@ -757,7 +757,7 @@ theorem goodD_confF_wsum {K : ℕ} {W : (Fin K → ℝ) → Prop} {Vk : Fin K �
     (htys : ∀ c i, GoodTy ((Vk c).val i).tyEntry) :
     GoodD (DConf.wsum W Vk).confF := by
   refine GoodD.mk ⟨hsat, ?_, ?_, ?_⟩ (fun t => htys _ _)
-  · -- nonnegativity: positive-weight cells have branch solutions
+  · -- nonnegativity: positive-weight summands have branch solutions
     rintro x ⟨ω, hω, b, hb, hx⟩ t
     rw [hx t]
     rcases (hWnn ω hω (finSigmaFinEquiv.symm t).1).lt_or_eq with hc | hc
@@ -778,7 +778,7 @@ theorem goodD_confF_wsum {K : ℕ} {W : (Fin K → ℝ) → Prop} {Vk : Fin K �
           exact Finset.sum_congr rfl fun t _ => hx t
       _ = ∑ c, ω c := Finset.sum_congr rfl fun c _ => hterm c
       _ = 1 := hWmass ω hω
-  · -- convexity: mix the weights; per positive cell, mix the branch solutions
+  · -- convexity: mix the weights; per summand of positive weight, mix the branch solutions
     rintro x x' ⟨ω, hω, b, hb, hx⟩ ⟨ω', hω', b', hb', hx'⟩ t ht0 ht1
     have hA : ∀ c, 0 ≤ t * ω c := fun c => mul_nonneg ht0 (hWnn ω hω c)
     have hA' : ∀ c, 0 ≤ (1 - t) * ω' c :=
@@ -789,7 +789,7 @@ theorem goodD_confF_wsum {K : ℕ} {W : (Fin K → ℝ) → Prop} {Vk : Fin K �
           = (t * ω c + (1 - t) * ω' c) * B i := by
       intro c
       by_cases hpos : 0 < t * ω c + (1 - t) * ω' c
-      · -- one of the two weights is positive, so the cell is good
+      · -- one of the two weights is positive, so the summand is good
         have hgc : GoodC (Vk c).n (Vk c).C := by
           by_cases h : 0 < ω c
           · exact hgVk c ⟨ω, hω, h⟩ ⟨b c, hb c h⟩
@@ -1079,7 +1079,7 @@ theorem type_safety_gr : ∀ {m : Tm} {k : ℕ} {V : DConf}, m ⇓[k] V →
           exact ⟨pp, hpp⟩
         obtain ⟨hgV, hreordV⟩ := ihm hm hsatV
         -- goodness of the computed evidence, from its satisfiability and the
-        -- per-cell facts
+        -- entrywise facts
         have hgood : GoodD (tagReorderD V.confF ⟨n, ty, C⟩).toF :=
           goodD_tagReorderD_sat hgV hgμ (reorderD_sat_of_refDist hsatV hreordV)
         -- every branch is well typed
@@ -1264,7 +1264,7 @@ theorem ascV_total {v : Val} (hv : ⊢ v : v.tyEntry) (e : TagTy)
   (Val.coerce_total hv e σt).imp fun _ => red_ascV_of_coerce
 
 /-- Every well-typed distribution ascription whose ascribed term reduces has a
-reduction: to the mixture of the per-cell coercions when the composition
+reduction: to the mixture of the coercions at the entries when the composition
 `emeetD (tagReorderD V.confF μ) εd` is defined, and to the error at the target
 type otherwise. -/
 theorem dascD_total {εd : TagD} {m : Tm} {μb : FDist} {k1 : ℕ} {V : DConf}
@@ -1274,7 +1274,7 @@ theorem dascD_total {εd : TagD} {m : Tm} {μb : FDist} {k1 : ℕ} {V : DConf}
   | ascT htm hval hgεd hgμb =>
     rename_i μ
     by_cases hsat : ∃ w, (emeetD (tagReorderD V.confF μ) εd).toF.C w
-    · -- the composition is defined: route cell by cell; the right tags name
+    · -- the composition is defined: route entry by entry; the right tags name
       -- entries of the target type by the validity of `εd`
       have hR : ∀ c : Fin (emeetD (tagReorderD V.confF μ) εd).n,
           (emeetD (tagReorderD V.confF μ) εd).r c < μb.n :=
@@ -1294,7 +1294,7 @@ theorem dascD_total {εd : TagD} {m : Tm} {μb : FDist} {k1 : ℕ} {V : DConf}
 
 The second part of Lemma 42: every entry of the runtime type of a result is an
 entry of its static type.  Values are created by coercion to a written target
-((D::σ), (D::μ), the cells of (Dlet)) or copied by the congruences. -/
+((D::σ), (D::μ), the entrywise coercions of (Dlet)) or copied by the congruences. -/
 
 /-- Lemma 39 (one-step coercion of a value): coercing a value to `σ` produces a
 value that displays `σ`, whether the coercion succeeds or errs. The entries of

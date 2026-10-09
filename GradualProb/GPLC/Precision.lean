@@ -17,13 +17,13 @@ claimed.
 
 Given a concretization of the left type, the proof composes its split
 (`lift_split`) with the coupling of `PrecD` (`Lift.trans`) and builds a
-concretization of the right type with one static entry per cell `(k, j)` of
-the composed coupling, assigned to the block of `j`. The type placed at
-cell `(k, j)` is always an equal copy of some entry of the given
-concretization: of entry `k` itself when its formula entry is precise for `j`
-(which a positive coupling weight guarantees), and of an entry obtained from
-the right coverage witness `fR j` otherwise. The two coverage clauses of `EqD`
-are then read off these cells.
+concretization of the right type with one static entry for each pair of
+indices `(k, j)` of the composed coupling, assigned to the block of `j`. The
+type placed at the entry `(k, j)` is always an equal copy of some entry of the
+given concretization: of entry `k` itself when its formula entry is precise
+for `j` (which a positive coupling weight guarantees), and of an entry obtained
+from the right coverage witness `fR j` otherwise. The two coverage clauses of `EqD`
+are then read off these entries.
 -/
 
 namespace GradualProb.GPLC
@@ -62,9 +62,9 @@ theorem precD_to_agtPrecD {D1 D2 : FDist} :
     -- of `PrecD`: a coupling `g` of the entry probabilities of `S1` and `q`
     obtain ⟨g, hg, hgs⟩ := (lift_split hnn1 hmass1).trans hw
       (T := fun k j => R (f1 k) j) fun k i j hki hij => by subst hki; exact hij
-    -- Every cell carries an equal copy of some entry of `S1`, recorded
-    -- in `K`; it is a copy of entry `k` itself on the cell that left coverage
-    -- reads (`j = fL (f1 k)`) and on every cell of positive weight.  All three
+    -- Every entry `(k, j)` carries an equal copy of some entry of `S1`, recorded
+    -- in `K`; it is a copy of entry `k` itself on the entry that left coverage
+    -- reads (`j = fL (f1 k)`) and on every entry of positive weight.  All three
     -- branches feed the recursive call a precision proof taken from a field of
     -- the `PrecD` constructor, which is what the termination checker needs.
     have hb : ∀ k j, ∃ (b : Ty) (k' : Fin L1.length),
@@ -86,13 +86,13 @@ theorem precD_to_agtPrecD {D1 D2 : FDist} :
           exact ⟨b, k0, hbc, hbe, fun h => absurd h hjl, fun h => absurd h hpos⟩
     choose B K hBc hBe hBl hBk using hb
     set E := (finProdFinEquiv : Fin L1.length × Fin D2.n ≃ Fin (L1.length * D2.n)) with hEdef
-    -- the cells of the grid, with weights `g`, have the entry probabilities of
+    -- the pairs of the grid, with weights `g`, have the entry probabilities of
     -- `S1` and the solution `q` as marginals
     obtain ⟨hrow, hcol⟩ := hg.restrict E.symm.injective
       fun k j _ => ⟨E (k, j), E.symm_apply_apply _⟩
     refine ⟨.dist (List.ofFn fun κ =>
         (B (E.symm κ).1 (E.symm κ).2, GProb.q (g (E.symm κ).1 (E.symm κ).2))), ?_, ?_⟩
-    · -- the built list is a concretization of `D2`; a cell weighs at most its
+    · -- the built list is a concretization of `D2`; an entry weighs at most its
       -- row, the probability of an entry of `S1`, hence at most 1
       refine fconcrD_ofFn_le (fun κ => B (E.symm κ).1 (E.symm κ).2)
         (fun κ => g (E.symm κ).1 (E.symm κ).2) q (fun κ => (E.symm κ).2) hqC
@@ -106,8 +106,8 @@ theorem precD_to_agtPrecD {D1 D2 : FDist} :
       rw [map_eq_ofFn_get]
       refine eqD_ofFn_iff.2 ⟨?_, fun k => ⟨E (k, fL (f1 k)), ?_⟩,
         fun κ => ⟨K (E.symm κ).1 (E.symm κ).2, hBe _ _⟩⟩
-      · -- every cell goes to its entry of `S1`; a cell of positive weight
-        -- carries a copy of that entry
+      · -- every entry `(k, j)` goes to the entry `k` of `S1`; an entry of positive
+        -- weight carries a copy of that entry
         have hl := Lift.pushfwd_of_pos (fun κ => (E.symm κ).1)
           (w := fun κ => g (E.symm κ).1 (E.symm κ).2)
           (R := fun κ k => EqTy (L1.get k).1 (B (E.symm κ).1 (E.symm κ).2))
@@ -116,7 +116,7 @@ theorem precD_to_agtPrecD {D1 D2 : FDist} :
             rwa [hBk _ _ hpos] at hce
         rw [hrow] at hl
         exact hl.symm
-      · -- left coverage: the cell `(k, fL (f1 k))` carries a copy of entry `k`
+      · -- left coverage: the entry `(k, fL (f1 k))` carries a copy of entry `k`
         have hce := hBe k (fL (f1 k))
         rw [hBl k _ rfl] at hce
         simpa using hce

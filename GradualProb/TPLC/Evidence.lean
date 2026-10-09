@@ -71,11 +71,11 @@ theorem EEvD.right {ε D D' : FDist} (h : EEvD ε D D') : EPrecD ε D' := h.2
 
 /-! ## Tag-guided precision -/
 
-/-- Tag-guided precision of `ε` into `D` along the map `l` from the cells of
-`ε` to the entries of `D`: each cell is below the entry it is sent to
-(`EPrecTy`), and the push-forward along `l` (`pushfwd`) of every solution of
+/-- Tag-guided precision of `ε` into `D` along the map `l` from the entries of
+`ε` to the entries of `D`: each entry of `ε` is below the entry of `D` it is sent
+to (`EPrecTy`), and the push-forward along `l` (`pushfwd`) of every solution of
 `ε` is a solution of `D`. This is the distribution clause of validity (Definition 9)
-without the hereditary validity of the cells. -/
+without the hereditary validity of the entries. -/
 structure TagPrec (ε : FDist) (D : FDist) (l : Fin ε.n → Fin D.n) : Prop where
   cell : ∀ k, EPrecTy (ε.ty k) (D.ty (l k))
   push : ∀ w, ε.C w → D.C (pushfwd l w)
@@ -88,7 +88,7 @@ theorem eprecD_of_tagPrec {ε D : FDist} {l : Fin ε.n → Fin D.n}
   .intro fun w hw => ⟨_, h.push w hw, .pushfwd l (hnn w hw) h.cell⟩
 
 /-- Tag-guided precision composes (push-forward of push-forward, `EPrecTy`
-transitivity on the cells). -/
+transitivity on the entries). -/
 theorem TagPrec.comp {ε1 ε2 D : FDist} {f : Fin ε1.n → Fin ε2.n}
     {g : Fin ε2.n → Fin D.n} (h1 : TagPrec ε1 ε2 f) (h2 : TagPrec ε2 D g) :
     TagPrec ε1 D (fun k => g (f k)) := by
@@ -117,30 +117,33 @@ inductive TagTy : Type where
 of solutions, as in `FDist`), and two tag maps `l` and `r`.
 
 In the article a tag is a component `ω = ⟨α, l, r⟩` of each probability
-variable, pointing at the entries of the left and right judged types that the
-cell connects. Here the tags are two maps from the cells to entry indices,
+variable, pointing at the entries of the left and right judged types that each
+entry of the evidence connects. Here the tags are two maps from the entries of
+the evidence to entry indices,
 with values in `ℕ`; that they are in range for a given judged type is part of
 validity (`HValid`). The evidences that the reduction rules compute
 (`tagReorderD`, `emeetD`) are instances of the witness construction of
-`TPLC/Witness`, whose cells are pairs of operand entries; the rules name the
-outcome and the target entry of a cell through the projections of the cell
+`TPLC/Witness`, whose entries are pairs of operand entries; the rules name the
+outcome and the target entry of an entry of the evidence through its projections
 (`reorderDL`, `reorderDR`, `meetDL`), which are indices by construction, except
-the target entry of rule (D::μ), which is the right tag of the cell, in range
+the target entry of rule (D::μ), which is the right tag of the entry, in range
 by the validity premise of the rule.
 
 As `FDist`, it is a `structure` whose operators are written with projections
 (see the note at `FDist`); it does not extend `FDist`, since its entries are
 tagged evidences and not formula types. -/
 structure TagD : Type where
-  /-- Number of cells. -/
+  /-- Number of entries. -/
   n : ℕ
-  /-- Entries (cell evidences). -/
+  /-- Entries (tagged simple evidences). -/
   ty : Fin n → TagTy
   /-- Closing formula, as a solution set. -/
   C : (Fin n → ℝ) → Prop
-  /-- Left tags: the entry of the left judged type each cell points at. -/
+  /-- Left tags: the entry of the left judged type that each entry of the
+  evidence points at. -/
   l : Fin n → ℕ
-  /-- Right tags: the entry of the right judged type each cell points at. -/
+  /-- Right tags: the entry of the right judged type that each entry of the
+  evidence points at. -/
   r : Fin n → ℕ
 end
 
@@ -214,7 +217,7 @@ function of `TagD.toF`). -/
 end
 
 /-- Erasure of a tagged distribution evidence: forget the tags. The number of
-cells and the formula are those of the evidence, definitionally. -/
+entries and the formula are those of the evidence, definitionally. -/
 @[reducible] def TagD.toF (e : TagD) : FDist := ⟨e.n, e.toFty, e.C⟩
 
 /-- The erasure of a tagged distribution evidence has as many entries as the
@@ -298,7 +301,7 @@ mutual
 reflexive evidence for `σ ∼̇ σ`.
 
 In the article the types inferred by the typing judgments are formula types
-whose variables carry the diagonal tags (each cell points at itself). Here
+whose variables carry the diagonal tags (each entry points at itself). Here
 `FTy`/`FDist` carry no tags; the diagonal tags are recomputed when a type is
 used as an evidence, by `FTy.toTag`/`FDist.toTag`. -/
 def FTy.toTag : FTy → TagTy
@@ -348,17 +351,17 @@ open GradualProb.GPLC
 
 /-! ## Tag-aware precision between evidences (Figure 18)
 
-The judgment `σ ⊑ σ' ⊢[π] e ⊑̇ e'` compares two evidences cell by cell along
+The judgment `σ ⊑ σ' ⊢[π] e ⊑̇ e'` compares two evidences entry by entry along
 one of the two tags `π ∈ {l, r}`, and compares the entries of the judged
 types that the tags name: `TagPrecTy π` for simple evidences and `TagPrecD π`
 for distribution evidences, mutually inductive. Only the judged types on the
 side `π` appear as arguments, since the judgment only reads the tags `π`.
 
 Rule (πevd) relates the solutions of the two formulas by the lifting of a
-relation on the cells. Since an inductive cannot mention itself under the
+relation on the entries. Since an inductive cannot mention itself under the
 definition `SymLiftAll`, the lifted relation is an explicit witness `R`
-contained in the cell relation, as in `PrecD`; `TagPrecD.intro` and
-`TagPrecD.coup` state the rule on the cell relation itself. -/
+contained in the entry relation, as in `PrecD`; `TagPrecD.intro` and
+`TagPrecD.coup` state the rule on the entry relation itself. -/
 
 mutual
 /-- Tag-aware precision `σ ⊑ σ' ⊢[π] e ⊑̇ e'` of simple evidences (Figure 18). -/
@@ -374,7 +377,7 @@ inductive TagPrecTy (π : Side) : FTy → FTy → TagTy → TagTy → Prop where
       TagPrecTy π (.arrow σ D) (.arrow σ' D') (.arrow s d) (.arrow s' d')
 /-- Rule (πevd) of Figure 18, `D ⊑ D' ⊢[π] e ⊑̇ e'`: the tags `π` of both
 evidences are in range, and every solution of `e` is coupled with a solution
-of `e'` so that, at each cell pair of positive weight, the cell evidences are
+of `e'` so that, at each pair of entries of positive weight, the two entries are
 related by `TagPrecTy π` against the entries their tags name, and those
 entries are related by type precision `PrecTy`. -/
 inductive TagPrecD (π : Side) : TagD → TagD → FDist → FDist → Prop where
@@ -397,7 +400,7 @@ judged types; the notation restores the article's order. -/
 scoped notation:50 (name := tagPrecDStx) D:51 " ⊑ " D':51 " ⊢[" π "] " e:51 " ⊑̇ " e':51 =>
   TagPrecD π e e' D D'
 
-/-! ### The distribution rule on the cell relation -/
+/-! ### The distribution rule on the entry relation -/
 
 /-- The tags `π` of `e` are in range for `D`. -/
 theorem TagPrecD.tag_lt {π : Side} {e e' : TagD} {D D' : FDist} :
@@ -410,7 +413,8 @@ theorem TagPrecD.tag_lt' {π : Side} {e e' : TagD} {D D' : FDist} :
   | .mk _ _ ht' _ _ _ => ht'
 
 /-- The coupling clause of `TagPrecD`: every solution of `e` is coupled with a
-solution of `e'` so that cells of positive weight are related. -/
+solution of `e'` so that the coupling has positive weight only between related
+entries. -/
 theorem TagPrecD.coup {π : Side} {e e' : TagD} {D D' : FDist} (h : TagPrecD π e e' D D') :
     SymLiftAll (fun (c : Fin e.toF.n) (c' : Fin e'.toF.n) =>
           TagPrecTy π (D.ty ⟨e.tag π c, h.tag_lt c⟩) (D'.ty ⟨e'.tag π c', h.tag_lt' c'⟩)
@@ -420,7 +424,7 @@ theorem TagPrecD.coup {π : Side} {e e' : TagD} {D D' : FDist} (h : TagPrecD π 
   match h with
   | .mk _ _ _ hty hprec hc => hc.mono fun c c' hR => ⟨hty c c' hR, hprec c c' hR⟩
 
-/-- Introduction rule for `TagPrecD`, from the lifting of the cell relation. -/
+/-- Introduction rule for `TagPrecD`, from the lifting of the entry relation. -/
 theorem TagPrecD.intro {π : Side} {e e' : TagD} {D D' : FDist}
     (ht : ∀ c : Fin e.n, e.tag π c < D.n) (ht' : ∀ c : Fin e'.n, e'.tag π c < D'.n)
     (hc : SymLiftAll (fun (c : Fin e.toF.n) (c' : Fin e'.toF.n) =>
@@ -509,9 +513,9 @@ end
 
 /-! ## Shallow validity
 
-Validity without the hereditary clause on the cells: the distribution clause
+Validity without the hereditary clause on the entries: the distribution clause
 of Definition 9 checks the tags and the tag-guided precision but not the
-validity of each cell. It is an intermediate step of Lemma 7; the typing rules
+validity of each entry. It is an intermediate step of Lemma 7; the typing rules
 use the hereditary validity defined further below. -/
 
 /-- Shallow validity along `π`: the tags `π` are in range and tag-guide the
@@ -593,15 +597,15 @@ theorem validFor_evD {e : TagD} {D1 D2 : FDist} (h : e.ValidFor D1 D2)
 
 /-! ## Valid evidence (Definition 9)
 
-The routed reduction rules (Dlet) and (D::μ) coerce, at each cell `c` of the
+The routed reduction rules (Dlet) and (D::μ) coerce, at each entry `c` of the
 routing evidence, the outcome that the left tag of `c` names to the target
-entry that its right tag names, using the cell's entry `e.ty c` as the coercion
-evidence (`Red` names them through the projections of the cell, which agree
+entry that its right tag names, using its simple evidence `e.ty c` as the
+coercion evidence (`Red` names them through the projections of `c`, which agree
 with its tags, and the target entry of (D::μ) through the right tag; see
 `TagD`). Typing that coercion
 needs the entry to be valid for the judgment its tags name, so validity is
-hereditary: the distribution clause asks every cell to be valid against the
-entry its tag names. -/
+hereditary: the distribution clause asks every entry of the evidence to be
+valid against the entry its tag names. -/
 
 
 mutual
@@ -614,8 +618,8 @@ inductive HVTag (π : Side) : TagTy → FTy → Prop where
       HVTag π s σs → HValid π d σD → HVTag π (.arrow s d) (.arrow σs σD)
 /-- Definition 9, validity of a distribution evidence along `π` (the
 distribution rule): the tags `π` are in range, the erasure is tag-guided
-precise into `D` (`TagPrec`), and every cell is valid against the entry its
-tag `π` names. -/
+precise into `D` (`TagPrec`), and every entry of the evidence is valid against
+the entry of `D` its tag `π` names. -/
 inductive HValid (π : Side) : TagD → FDist → Prop where
   | mk : ∀ {e : TagD} {D : FDist} (ht : ∀ c : Fin e.n, e.tag π c < D.n),
       TagPrec e.toF D (fun c => ⟨e.tag π c, ht c⟩) →
@@ -671,7 +675,7 @@ theorem TagD.HValidFor.toV {e : TagD} {D1 D2 : FDist} (h : e.HValidFor D1 D2) :
   ⟨hvalid_toV h.1, hvalid_toV h.2⟩
 
 
-/-- The cells of a well-formed distribution evidence are well-formed. -/
+/-- The entries of a well-formed distribution evidence are well-formed. -/
 theorem TagD.goodTy_entry {e : TagD} (hg : GoodD e.toF) (c : Fin e.n) :
     GoodTy (e.ty c).toF := by
   obtain ⟨n, ty, C, l, r⟩ := e
@@ -755,7 +759,7 @@ end
 theorem hvtag_refl {σ : FTy} (hg : GoodTy σ) : HVTagTy σ.toTag σ σ :=
   ⟨hvtag_toTag .l hg, hvtag_toTag .r hg⟩
 
-/-- Each cell of a valid distribution evidence is a valid simple evidence for
+/-- Each entry of a valid distribution evidence is a valid simple evidence for
 the judgment its two tags name. -/
 theorem TagD.HValidFor.entryH {e : TagD} {D1 D2 : FDist} (h : e.HValidFor D1 D2)
     {c : Fin e.n} (h1 : e.l c < D1.n) (h2 : e.r c < D2.n) :
@@ -789,7 +793,7 @@ def tagCod : TagTy → Option TagD
 
 A well-formed evidence that is valid along `π` for a well-formed type is
 related to itself, with the diagonal coupling. Validity is what makes each
-cell related to itself against the entry its tag names. -/
+entry related to itself against the entry its tag names. -/
 
 mutual
 /-- Reflexivity of `TagPrecTy π` on evidences valid along `π`. -/

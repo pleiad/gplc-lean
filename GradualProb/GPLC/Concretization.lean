@@ -319,7 +319,7 @@ theorem consD_to_agtConsD {D1 D2 : FDist} (h1 : GoodD D1) (h2 : GoodD D2) :
       obtain ⟨a, b, ha, hb, he⟩ := consTy_to_agtConsTy (hG1 (fR j)) (hG2 j) (hicovR j)
       exact ⟨(a, b), ha, hb, he⟩
     choose RR hRRa hRRb hRRe using hRRex
-    -- per pair: equal concretizations if the cell has positive probability, the
+    -- per pair: equal concretizations if the pair has positive weight, the
     -- coverage representatives otherwise
     have hAB : ∀ i j, ∃ ab : Ty × Ty,
         FConcrTy (D1.ty i) ab.1 ∧ FConcrTy (D2.ty j) ab.2 ∧
@@ -352,7 +352,7 @@ theorem consD_to_agtConsD {D1 D2 : FDist} (h1 : GoodD D1) (h2 : GoodD D2) :
         exact hw.nonneg _ _
       · simp only [hwtK, Fin.addCases_right]
         exact le_refl 0
-    -- the cells of the grid have the two solutions as marginals
+    -- the weights of the pairs of the grid have the two solutions as marginals
     have hgrid := hw.restrict E.symm.injective fun i j _ => ⟨E (i, j), E.symm_apply_apply _⟩
     refine ⟨.dist (List.ofFn fun k => (aK k, GProb.q (wtK k))),
             .dist (List.ofFn fun k => (bK k, GProb.q (wtK k))), ?_, ?_, ?_⟩

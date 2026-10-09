@@ -139,7 +139,7 @@ theorem fin2_cases : ∀ x : Fin 2, x = 0 ∨ x = 1 := by decide
 /-! ### The diagonal coupling -/
 
 /-- The diagonal coupling of two two-entry distributions, with weight `1/2`
-on each diagonal cell. -/
+on each diagonal pair. -/
 noncomputable def Gd : Fin 2 → Fin 2 → ℝ := fun i j => if i = j then 1/2 else 0
 
 /-- The diagonal coupling couples the two uniform weight vectors on two
@@ -231,7 +231,7 @@ theorem prog_precise_step :
 
 /-! ### The less precise composition -/
 
-/-- Every cell of `Eaa ⊓ E1` pairs entries with the same index. -/
+/-- Every entry of `Eaa ⊓ E1` pairs operand entries with the same index. -/
 theorem diagR (c' : Fin (meetD Eaa E1).n) :
     meetDL Eaa E1 c' = meetDR Eaa E1 c' := by
   have hl := meetCell_cons Eaa E1 c'
@@ -243,7 +243,7 @@ theorem diagR (c' : Fin (meetD Eaa E1).n) :
   · rw [hi, hj] at hl
     exact absurd hl (fun hx => by cases hx with | arrow hs _ => cases hs)
 
-/-- For each index `i`, some cell of `Eaa ⊓ E1` pairs the two entries `i`. -/
+/-- For each index `i`, some entry of `Eaa ⊓ E1` pairs the two entries `i`. -/
 theorem right_cell_of (i : Fin 2) :
     ∃ c', meetDL Eaa E1 c' = i ∧ meetDR Eaa E1 c' = i := by
   refine meetD_cell_exists (D1 := Eaa) (D2 := E1) ?_
@@ -251,8 +251,8 @@ theorem right_cell_of (i : Fin 2) :
   · exact econsTy_sA'_sA
   · exact econsTy_sB'_sB
 
-/-- Summing a constant `k` over the cells of `Eaa ⊓ E1` whose left tag is `i`
-gives `k`: exactly one cell has left tag `i`. -/
+/-- Summing a constant `k` over the entries of `Eaa ⊓ E1` whose left tag is `i`
+gives `k`: exactly one entry has left tag `i`. -/
 theorem sum_right_ind (i : Fin 2) (k : ℝ) :
     (∑ c' : Fin (meetD Eaa E1).n, if meetDL Eaa E1 c' = i then k else 0) = k := by
   obtain ⟨c0, h0, h0'⟩ := right_cell_of i

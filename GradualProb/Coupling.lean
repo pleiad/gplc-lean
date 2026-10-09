@@ -16,7 +16,8 @@ formula.
 
 * `IsCoupling p q w`: `w` is a coupling of the weight vectors `p` and `q`
   (Definition 2, condition 1).
-* `Supp R w`: the positive cells of `w` lie in `R` (Definition 2, condition 2).
+* `Supp R w`: `w` has positive weight only on pairs related by `R` (Definition 2,
+  condition 2).
 * `Lift R p q`: the lifting of `R` (Definition 2).
 * `SymLift R ψ₁ ψ₂`: the lifting of `R` to symbolic distributions
   (Definition 3), which relates some solution of each constraint; and
@@ -38,10 +39,10 @@ formula.
   `Lift.sigmaFin`: the block-diagonal coupling of appended weight vectors and
   the product over a dependent sum.
 * `isCoupling_pushfwd`, `isCoupling_pushfwd_prod`, `IsCoupling.restrict`:
-  couplings from push-forwards, and the restriction of a coupling to the cells
+  couplings from push-forwards, and the restriction of a coupling to the pairs
   of its support.
 * `sum_cells`, `isCoupling_restrict_cells`, `IsCoupling.restrict_of_supp`:
-  sums and couplings over an injective enumeration of the cells of a support.
+  sums and couplings over an injective enumeration of the pairs of a support.
 * `Lift.refl`, `Lift.symm`, `Lift.mono`, `Lift.comp`, `Lift.trans`;
   `SymLift.refl`, `SymLift.symm`, `SymLift.mono`, `SymLift.comp_left`,
   `SymLift.comp_right`; `SymLiftAll.refl`, `SymLiftAll.mono`,
@@ -60,8 +61,8 @@ formula.
 
 ## Reading guide
 
-The definitions come first, then the elementary facts (positivity and zero
-cells), the constructions, the push-forward and the probability of a
+The definitions come first, then the elementary facts (positive and zero
+weights), the constructions, the push-forward and the probability of a
 predicate, the properties of the lifting, and the coverage of concatenated
 families. The `(⟸)` direction of the class-probability characterization uses
 the proportional coupling `w i j = p i · q j / M`, with `M` the common class
@@ -160,12 +161,12 @@ namespace IsCoupling
 
 variable {ι κ : Type*} [Fintype ι] [Fintype κ] {p : ι → ℝ} {q : κ → ℝ} {w : ι → κ → ℝ}
 
-/-- A cell of a coupling is at most its row weight. -/
+/-- A weight of a coupling is at most its row weight. -/
 theorem le_left (h : IsCoupling p q w) (i : ι) (j : κ) : w i j ≤ p i := by
   rw [← h.row i]
   exact Finset.single_le_sum (f := fun j => w i j) (fun j _ => h.nonneg i j) (Finset.mem_univ j)
 
-/-- A cell of a coupling is at most its column weight. -/
+/-- A weight of a coupling is at most its column weight. -/
 theorem le_right (h : IsCoupling p q w) (i : ι) (j : κ) : w i j ≤ q j := by
   rw [← h.col j]
   exact Finset.single_le_sum (f := fun i => w i j) (fun i _ => h.nonneg i j) (Finset.mem_univ i)
@@ -178,11 +179,11 @@ theorem left_nonneg (h : IsCoupling p q w) (i : ι) : 0 ≤ p i := by
 theorem right_nonneg (h : IsCoupling p q w) (j : κ) : 0 ≤ q j := by
   rw [← h.col j]; exact Finset.sum_nonneg fun i _ => h.nonneg i j
 
-/-- A positive cell has a positive row weight. -/
+/-- A positive weight has a positive row weight. -/
 theorem left_pos (h : IsCoupling p q w) {i : ι} {j : κ} (hpos : 0 < w i j) : 0 < p i :=
   lt_of_lt_of_le hpos (h.le_left i j)
 
-/-- A positive cell has a positive column weight. -/
+/-- A positive weight has a positive column weight. -/
 theorem right_pos (h : IsCoupling p q w) {i : ι} {j : κ} (hpos : 0 < w i j) : 0 < q j :=
   lt_of_lt_of_le hpos (h.le_right i j)
 
@@ -194,11 +195,11 @@ theorem eq_zero_of_left (h : IsCoupling p q w) {i : ι} (hi : p i = 0) (j : κ) 
 theorem eq_zero_of_right (h : IsCoupling p q w) {j : κ} (hj : q j = 0) (i : ι) : w i j = 0 :=
   le_antisymm (hj ▸ h.le_right i j) (h.nonneg i j)
 
-/-- A row of positive weight has a positive cell. -/
+/-- A row of positive weight contains a positive weight. -/
 theorem exists_pos_of_left (h : IsCoupling p q w) {i : ι} (hi : 0 < p i) : ∃ j, 0 < w i j :=
   exists_pos_of_sum_pos (h.row i ▸ hi)
 
-/-- A column of positive weight has a positive cell. -/
+/-- A column of positive weight contains a positive weight. -/
 theorem exists_pos_of_right (h : IsCoupling p q w) {j : κ} (hj : 0 < q j) : ∃ i, 0 < w i j :=
   exists_pos_of_sum_pos (h.col j ▸ hj)
 
@@ -332,7 +333,7 @@ theorem sum_glue₃_left (h₁ : IsCoupling p q w₁) (h₂ : IsCoupling q r w�
   rw [hfac, h₁.col j]
   exact div_mul_cancel_of_imp fun hq => h₂.eq_zero_of_left hq k
 
-/-- A positive three-index weight comes from two positive cells. -/
+/-- A positive three-index weight comes from two positive weights. -/
 theorem glue₃_pos (h₁ : IsCoupling p q w₁) (h₂ : IsCoupling q r w₂) {i : ι} {j : κ} {k : μ}
     (hpos : 0 < glue₃ q w₁ w₂ i j k) : 0 < w₁ i j ∧ 0 < w₂ j k := by
   unfold glue₃ at hpos
@@ -355,7 +356,7 @@ theorem IsCoupling.glue (h₁ : IsCoupling p q w₁) (h₂ : IsCoupling q r w₂
     rw [Finset.sum_comm, Finset.sum_congr rfl fun j _ => sum_glue₃_left h₁ h₂ j k, h₂.col k]
 
 /-- Lemma 26 (composition of couplings): a positive weight of the composed
-coupling factors through a pair of positive cells. -/
+coupling factors through a pair of positive weights. -/
 theorem glue₂_pos (h₁ : IsCoupling p q w₁) (h₂ : IsCoupling q r w₂) {i : ι} {k : μ}
     (hpos : 0 < glue₂ q w₁ w₂ i k) : ∃ j, 0 < w₁ i j ∧ 0 < w₂ j k := by
   obtain ⟨j, hj⟩ := exists_pos_of_sum_pos (f := fun j => glue₃ q w₁ w₂ i j k) hpos
@@ -575,7 +576,7 @@ variable {ι κ : Type*} [Fintype ι] [Fintype κ] {α : ι → Type*} {β : κ 
   {b : ∀ i, α i → ℝ} {c : ι → ∀ j, β j → ℝ} {v : ∀ i j, α i → β j → ℝ}
 
 /-- The product of a coupling `u` of `p` and `q` with a family of couplings
-`v i j`, one for every positive cell of `u`, of the weights `b i` and `c i j`:
+`v i j`, one for every positive weight of `u`, of the weights `b i` and `c i j`:
 `W (i,k) (j,l) = u i j · v i j k l` couples the weights `p i · b i k` with
 the `u`-weighted sums `∑ i, u i j · c i j l`. -/
 theorem IsCoupling.sigma (hu : IsCoupling p q u)
@@ -605,8 +606,8 @@ theorem IsCoupling.sigma (hu : IsCoupling p q u)
     · rw [← Finset.mul_sum, (hv i j h).col]
     · simp [← h]
 
-/-- A positive weight of the product coupling comes from a positive cell of
-`u` and a positive cell of the corresponding `v i j`. -/
+/-- A positive weight of the product coupling comes from a positive weight of
+`u` and a positive weight of the corresponding `v i j`. -/
 theorem IsCoupling.sigma_pos (hu : IsCoupling p q u)
     (hv : ∀ i j, 0 < u i j → IsCoupling (b i) (c i j) (v i j))
     {x : Σ i, α i} {y : Σ j, β j} (hpos : 0 < u x.1 y.1 * v x.1 y.1 x.2 y.2) :
@@ -798,7 +799,7 @@ theorem supp_pushfwd (f : ι → κ) (w : ι → ℝ) :
     Supp (fun i j => f i = j) (fun i j => if f i = j then w i else 0) :=
   fun _ _ hpos => (pos_of_ite_pos hpos).1
 
-/-- A weight vector on cells that are sent to pairs by `e` couples its two
+/-- A weight vector on indices that `e` sends to pairs couples its two
 marginals: the push-forward along `e` is a coupling of the push-forwards along
 the two components of `e`. -/
 theorem isCoupling_pushfwd_prod [Fintype κ] [DecidableEq ι] {γ : Type*} [Fintype γ] (e : γ → ι × κ)
@@ -817,8 +818,8 @@ theorem isCoupling_pushfwd_prod [Fintype κ] [DecidableEq ι] {γ : Type*} [Fint
     refine Finset.sum_congr rfl fun c _ => ?_
     by_cases h : (e c).2 = j <;> simp [Prod.ext_iff, h]
 
-/-- Restriction of a coupling to the cells of its support: if the injective
-map `e` reaches every pair of nonzero weight, the weights of the cells have the
+/-- Restriction of a coupling to the pairs of its support: if the injective
+map `e` reaches every pair of nonzero weight, the restricted weights have the
 weights of the coupling as marginals. -/
 theorem IsCoupling.restrict [Fintype κ] [DecidableEq ι] {γ : Type*} [Fintype γ] {p : ι → ℝ}
     {q : κ → ℝ} {w : ι → κ → ℝ} (h : IsCoupling p q w) {e : γ → ι × κ}
@@ -847,8 +848,8 @@ section Cells
 
 variable {ι κ γ : Type*} [Fintype ι] [Fintype κ] [Fintype γ]
 
-/-- A sum over cells that an injective map sends to pairs is the sum over all
-pairs, for a function that vanishes outside the cells. -/
+/-- A sum over the pairs of indices that an injective map enumerates is the sum
+over all pairs, for a function that vanishes outside them. -/
 theorem sum_cells {e : γ → ι × κ} (he : Function.Injective e) (G : ι → κ → ℝ)
     (hr : ∀ i j, G i j ≠ 0 → (i, j) ∈ Set.range e) :
     ∑ c, G (e c).1 (e c).2 = ∑ i, ∑ j, G i j :=
@@ -856,9 +857,9 @@ theorem sum_cells {e : γ → ι × κ} (he : Function.Injective e) (G : ι → 
     (fun x hx => of_not_not fun hne => hx (hr x.1 x.2 hne)) fun _ => rfl).trans
     (Fintype.sum_prod_type fun x : ι × κ => G x.1 x.2)
 
-/-- A family of weights on pairs, all of them zero outside the cells that the
-injective map `e` enumerates, couples its totals with its restriction to the
-cells. -/
+/-- A family of weights on pairs, all of them zero outside the pairs that the
+injective map `e` enumerates, couples its totals with its restriction to those
+pairs. -/
 theorem isCoupling_restrict_cells {μ : Type*} [Fintype μ] {T : μ → ι → κ → ℝ}
     (hT : ∀ i a b, 0 ≤ T i a b) {e : γ → ι × κ} (he : Function.Injective e)
     (hr : ∀ i a b, 0 < T i a b → (a, b) ∈ Set.range e) :
@@ -870,8 +871,8 @@ theorem isCoupling_restrict_cells {μ : Type*} [Fintype μ] {T : μ → ι → �
 
 variable [DecidableEq ι] [DecidableEq κ]
 
-/-- Restriction of a coupling supported on `P` to cells that enumerate the
-pairs of `P`: the weights of the cells have the weights of the coupling as
+/-- Restriction of a coupling supported on `P` to an enumeration `e` of the
+pairs of `P`: the restricted weights have the weights of the coupling as
 marginals (`IsCoupling.restrict`). -/
 theorem IsCoupling.restrict_of_supp {p : ι → ℝ} {q : κ → ℝ} {w : ι → κ → ℝ}
     {P : ι → κ → Prop} (h : IsCoupling p q w) (hs : Supp P w) {e : γ → ι × κ}
@@ -1010,7 +1011,7 @@ theorem Lift.smul (h : Lift R p q) {a : ℝ} (ha : 0 ≤ a) :
 
 /-- Scaling a lifting by a nonnegative factor `a`, when the relation is only
 required for a positive `a`: if `a = 0`, the scaled coupling has no positive
-cell. -/
+weight. -/
 theorem Lift.smul_of_pos {a : ℝ} (h : Lift (fun i j => 0 < a → R i j) p q) (ha : 0 ≤ a) :
     Lift R (fun i => a * p i) (fun j => a * q j) :=
   let ⟨_, hw, hs⟩ := h
@@ -1091,7 +1092,7 @@ theorem Lift.restrict [DecidableEq κ] {e : ι → κ} (he : Function.Injective 
   have h := Lift.pushfwd e (w := fun c => f (e c)) (fun c => hf (e c)) hR
   rwa [pushfwd_restrict he hr] at h
 
-/-- Nonnegative weights on cells that `e` sends to pairs related by `R`: the
+/-- Nonnegative weights on indices that `e` sends to pairs related by `R`: the
 two marginals are related by the lifting of `R` (`isCoupling_pushfwd_prod`). -/
 theorem Lift.pushfwd_prod [DecidableEq ι] [DecidableEq κ] {γ : Type*} [Fintype γ]
     (e : γ → ι × κ) {x : γ → ℝ} (hx : ∀ c, 0 ≤ x c) (hR : ∀ c, R (e c).1 (e c).2) :
@@ -1213,7 +1214,7 @@ variable {m m' : ℕ} {n : Fin m → ℕ} {n' : Fin m' → ℕ}
   {v : ∀ i j, Fin (n i) → Fin (n' j) → ℝ}
 
 /-- The product coupling `IsCoupling.sigma` on the `Fin`-indexed dependent
-concatenations of the two families of blocks: the block of a cell `κ` is
+concatenations of the two families of blocks: the block of an index `κ` is
 `(finSigmaFinEquiv.symm κ).1` and its position in the block is
 `(finSigmaFinEquiv.symm κ).2`. -/
 theorem IsCoupling.sigmaFin (hu : IsCoupling p q u)
@@ -1230,8 +1231,8 @@ theorem IsCoupling.sigmaFin (hu : IsCoupling p q u)
 /-- The lifting that the product coupling yields: if `u` couples `p` and `q`
 with support in `R`, and for every pair of blocks in `R` the weights `b i` and
 `c i j` are related by the lifting of `S i j`, then the concatenated weights
-are related by the lifting of any relation `T` that contains `S i j` on the
-cells of every pair of blocks in `R`. -/
+are related by the lifting of any relation `T` that contains `S i j` within
+every pair of blocks `(i, j)` in `R`. -/
 theorem Lift.sigmaFin {R : Fin m → Fin m' → Prop}
     {S : ∀ i j, Fin (n i) → Fin (n' j) → Prop}
     {T : Fin (∑ i, n i) → Fin (∑ j, n' j) → Prop}

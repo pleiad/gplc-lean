@@ -27,11 +27,11 @@ evidences of Figure 18 (Lemmas 46, 47 and 48). The ascription, application and
 
 ## Reading guide
 
-The cells of a meet enumerate the consistent pairs of entries of its operands.
+The entries of a meet enumerate the consistent pairs of entries of its operands.
 `meetD_mono_core` pushes a solution of a meet's constraint forward onto the
 full grid of pairs (`isCoupling_pushfwd_prod`), transports it through the two
 precision couplings with the tensor composition (`Lift.tensor`), and
-restricts the result to the cells of the less precise meet
+restricts the result to the entries of the less precise meet
 (`IsCoupling.restrict`, `Lift.restrict`).  `coup_comp_fun` composes a functional
 coupling with a general one (`Lift.pushfwd`, `Lift.trans`).
 
@@ -42,7 +42,7 @@ written `a`, and the other operand is written `b`, so that the meet is
 derivation of tag-aware precision and invert the meet with
 `emeetTy_pick_arrow`. Each distribution case delegates to a lemma `…_of_cells`
 that builds the coupling for each of the two tags (`l` or `r`), and supplies
-the relation between the coupled cells by the simple-type case. The results on
+the relation between the coupled entries by the simple-type case. The results on
 the routing evidence come last.
 -/
 
@@ -57,15 +57,15 @@ open GradualProb.GPLC
 The distribution case pushes a solution of the precise meet's constraint onto
 the grid of pairs of entries, transports it through the two precision couplings
 with the tensor composition (`Lift.tensor`), and restricts the result to the
-cells of the less precise meet.  The transported probability lies on
+entries of the less precise meet.  The transported probability lies on
 consistent less precise pairs by the transfer of consistency along precision
-(`econs_eprec_ty`, Lemma 24).  The entries of the coupled cells are related by
+(`econs_eprec_ty`, Lemma 24).  The types of the coupled entries are related by
 the simple-type case, by mutual recursion. -/
 
-/-- The coupling part of the distribution case of Lemma 12.  For cell
+/-- The coupling part of the distribution case of Lemma 12.  For entry
 relations `R1`, `R2` contained in `⊑̇` and couplings of the operands supported
 on them, each solution of the precise meet's constraint is coupled with one of
-the less precise meet's, and coupled cells have their left tags related by
+the less precise meet's, and coupled entries have their left tags related by
 `R1` and their right tags by `R2`.  The precision of the entries is added in
 `meetD_mono_tags`. -/
 theorem meetD_mono_core : ∀ {D1 D2 D1' D2' : FDist}
@@ -85,7 +85,7 @@ theorem meetD_mono_core : ∀ {D1 D2 D1' D2' : FDist}
       obtain ⟨q1', hq1', hl1⟩ := hc1 _ hC1
       obtain ⟨q2', hq2', hl2⟩ := hc2 _ hC2
       obtain ⟨Q, hQ, hl⟩ := Lift.tensor hP hl1 hl2
-      -- the transported joint lies on the cells of the less precise meet
+      -- the transported joint lies on the entries of the less precise meet
       have hQr : ∀ a b, Q a b ≠ 0 → (a, b) ∈ Set.range (meetCell D1' D2') := fun a b hne => by
         obtain ⟨x, hx, h1, h2⟩ :=
           hl.exists_of_right_pos (j := (a, b)) ((hQ.nonneg a b).lt_of_ne' hne)
@@ -98,7 +98,7 @@ theorem meetD_mono_core : ∀ {D1 D2 D1' D2' : FDist}
       obtain ⟨rfl, rfl⟩ := hQ.restrict (meetCell_injective D1' D2') hQr
       refine ⟨fun c' => Q (meetDL D1' D2' c') (meetDR D1' D2' c'),
         (meetD_C_iff _ _ _).2 ⟨hq1', hq2', fun _ => hQ.nonneg _ _⟩, ?_⟩
-      -- from cells to pairs, through the tensor, and back to cells
+      -- from entries to pairs, through the tensor, and back to entries
       have h₁ : Lift (fun c x => meetCell D1 D2 c = x) w (pushfwd (meetCell D1 D2) w) :=
         .pushfwd _ hnn fun _ => rfl
       have h₂ : Lift (fun y c' => meetCell D1' D2' c' = y)
@@ -215,10 +215,10 @@ theorem meetTy_mono : ∀ {σ τ σ' τ' m : FTy}, GoodTy σ → GoodTy τ →
                   rw [meetTy_arrow, hs3']
                   rfl
   termination_by structural σ τ σ' τ' m hgσ hgτ hgσ' hgτ' h1 h2 hm hgm => σ
-/-- The distribution case of Lemma 12 with the coupling exposed.  For cell
+/-- The distribution case of Lemma 12 with the coupling exposed.  For entry
 relations `R1`, `R2` contained in `⊑̇` and couplings of the operands supported
 on them, each solution of the precise meet's constraint is coupled with one of
-the less precise meet's, and coupled cells are `⊑̇`-related, with their left tags
+the less precise meet's, and coupled entries are `⊑̇`-related, with their left tags
 related by `R1` and their right tags by `R2`.  The coupling is that of
 `meetD_mono_core`; `meetTy_mono` and `meetD_mono` instantiate `R1` and `R2`
 with the relations of the operands' precision liftings, and the tag-aware
@@ -238,7 +238,7 @@ theorem meetD_mono_tags : ∀ {D1 D2 D1' D2' : FDist}
       hg1, hg2, hg1', hg2', hR1, hR2, hc1, hc2, hgmeet =>
       (meetD_mono_core hR1 hR2 hc1 hc2).mono fun c c' ⟨hL1, hL2⟩ => by
         refine ⟨?_, hL1, hL2⟩
-        -- the entry of each cell is the meet of the entries that its tags name
+        -- the type of each entry is the meet of the operand entries that its tags name
         obtain ⟨m, hm⟩ := Option.isSome_iff_exists.mp
           (cons_meetTy_isSome (meetCell_cons _ _ c))
         have hty : (meetD (.mk n1 ty1 C1) (.mk n2 ty2 C2)).ty c = m :=
@@ -276,8 +276,8 @@ projections of the carrier pair: `l = l₁ ∘ π₁` and `r = r₂ ∘ π₂`. 
 /-- Composition of a functional coupling with a general one.  A tag map `f`
 with `TagPrec X Y f` pushes each solution of `X` to one of `Y`; composing with a
 coupling of `Y` and `Z` supported on `R` gives a coupling of `X` and `Z`
-supported on `R ∘ f`.  This transports a relation from the cells of an evidence
-to the cells of a composition. -/
+supported on `R ∘ f`.  This transports a relation from the entries of an evidence
+to the entries of a composition. -/
 theorem coup_comp_fun {X Y Z : FDist} {f : Fin X.n → Fin Y.n}
     {R : Fin Y.n → Fin Z.n → Prop}
     (hf : TagPrec X Y f) (hgX : Good X) (hc : SymLiftAll R Y.C Z.C) :
@@ -335,14 +335,14 @@ theorem eprecTy_emeetTy_pick (π : Side) {a b m : TagTy} (hga : GoodTy a.toF)
 
     C ⊑ C″ ⊢[π] a ⊓ b ⊑̇ e″   whenever   C ⊑ C″ ⊢[π] a ⊑̇ e″   (same judged types)
 
-where `a` is the operand whose tags `π` the meet keeps: a cell of the meet
-names, through its tag `π`, the same entry as the cell of `a` it comes from.
+where `a` is the operand whose tags `π` the meet keeps: an entry of the meet
+names, through its tag `π`, the same entry as the entry of `a` it comes from.
 This covers tag-aware reductivity (take `e″ := a`) and composition with the
 precision hypothesis of a term. -/
 
-/-- The distribution case of `tagPrecTy_emeet_compose`, given the cells: the
+/-- The distribution case of `tagPrecTy_emeet_compose`, given the entries: the
 coupling of `a` with `e″` transports to the meet along the projection of its
-cells onto `a` (`coup_comp_fun`). -/
+entries onto `a` (`coup_comp_fun`). -/
 theorem tagPrecD_emeet_compose_of_cells {π : Side} {a b e'' : TagD} {D D'' : FDist}
     (hga : GoodD a.toF) (hgb : GoodD b.toF) (R : Fin a.n → Fin e''.n → Prop)
     (ht : ∀ k, a.tag π k < D.n) (ht' : ∀ c', e''.tag π c' < D''.n)
@@ -400,7 +400,7 @@ the erasures suffices. The result of an ascription is the composed evidence,
 and the ascription rules of term precision compare it tag-aware against the
 annotations. -/
 
-/-- The distribution case of `tagPrecTy_emeetTy`, given the cells: the
+/-- The distribution case of `tagPrecTy_emeetTy`, given the entries: the
 coupling of the two meets is that of Lemma 12 (`meetD_mono_core`), built from
 the tag-aware coupling of `a` with `a'` and the runtime coupling of `b` with
 `b'`. -/
@@ -566,7 +566,7 @@ The (Dlet) case of the dynamic gradual guarantee compares the routing evidences
 
 from `μᵣ ⊑ μᵣ′`, the refinement of `μᵣ′` into `μₛ′` (type safety on the less precise
 side).  Definedness on the less precise side is not transported:
-the coupling comes from the refinement, which picks carrier cells. -/
+the coupling comes from the refinement, which picks entries of the carrier. -/
 
 mutual
 /-- Lemma 47 (tag-aware precision and the meet), item 3: tag-aware greatest
@@ -632,7 +632,7 @@ theorem tagPrecD_reorderD_glb : ∀ {Dr Ds Dr' Ds' : FDist},
     TagPrecD .r (tagReorderD Dr Ds) (tagReorderD Dr' Ds') Ds Ds'
   | Dr, Ds, Dr', .mk ns' tys' Cs', hgr, hgs, hgr', hgs', hprec, href => by
       classical
-      -- the right tag of a cell of `tagReorderD` is its right provenance in `reorderD`
+      -- the right tag of an entry of `tagReorderD` is its right provenance in `reorderD`
       refine TagPrecD.intro (fun c => (reorderDR Dr Ds c).isLt)
         (fun c => (reorderDR Dr' (FDist.mk ns' tys' Cs') c).isLt) ?_
       intro w hw
@@ -659,12 +659,12 @@ end
 
 `tagPrecD_reorderD_glb` packs the coupling inside tag-aware precision, but the
 simulation of a `let` needs a single coupling that gives at once the value each
-cell routes (left tag), the branch it routes to (right tag), and the
+entry routes (left tag), the branch it routes to (right tag), and the
 tag-aware precision of the entries against the targets. -/
 
 /-- Lemma 48 (greatest lower bound of reordering), aligned form: the coupling
 of `eprec_reorderD_glb_tags`, which `tagPrecD_reorderD_glb` also uses, for a
-free cell relation `R1`, with the cell facts stated separately. -/
+free entry relation `R1`, with the facts about the entries stated separately. -/
 theorem eprec_reorderD_glb_align : ∀ {γp μ γl B : FDist}
     {R1 : Fin (γp ∥ μ).n → Fin γl.n → Prop},
     GoodD γp → GoodD μ → GoodD γl →

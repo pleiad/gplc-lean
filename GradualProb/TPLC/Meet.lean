@@ -31,13 +31,13 @@ consistent transitivity builds evidence (Lemma 9) and preserves validity
 
 ## Reading guide
 
-The meet is the witness construction `W_⊓` of `TPLC/Witness`, so its cell API
+The meet is the witness construction `W_⊓` of `TPLC/Witness`, so its entry API
 (the provenance tags `meetDL`/`meetDR`, the solutions of its formula,
 definedness, well-formedness and reductivity at distribution types) is the
 instance of the generic one at the carrier predicate `EConsTy`; what this
 module proves is what recurses on the simple meet. The carrier and
 definedness come first, then well-formedness, reductivity and Lemma 9. The
-tagged layer follows: hereditary validity of the tagged meet, the per-cell
+tagged layer follows: hereditary validity of the tagged meet, the per-entry
 facts that rule (D::μ) consumes, and the tagged meet of two types
 (`tagMeetTy`/`tagMeetD`) used by elaboration. The last sections are the
 common-lower-bound lemmas and the greatest lower bound.
@@ -53,27 +53,28 @@ open Classical
 
 The entries of `meetD D1 D2` are indexed by an enumeration of the pairs of
 operand entries that are runtime-consistent (`liveK EConsTy`). `meetCell` reads
-a cell as its pair and `meetDL`/`meetDR` are the two components; the reading is
+an entry as its pair and `meetDL`/`meetDR` are the two components; the reading is
 injective (`meetCell_injective`) and reaches every consistent pair
 (`meetCell_range`). `sum_meetD_grid` moves sums between the carrier and the
-full grid of pairs. All of it is the cell API of `TPLC/Witness` at `EConsTy`. -/
+full grid of pairs. All of it is the entry API of `TPLC/Witness` at `EConsTy`. -/
 
-/-- The cells of the meet, read as pairs of entries, are distinct. -/
+/-- The entries of the meet, read as pairs of operand entries, are distinct. -/
 theorem meetCell_injective (D1 D2 : FDist) : Function.Injective (meetCell D1 D2) :=
   witnessCell_injective EConsTy D1 D2
 
-/-- Every runtime-consistent pair of entries is a cell of the meet. -/
+/-- Every runtime-consistent pair of entries is an entry of the meet. -/
 theorem meetCell_range {D1 D2 : FDist} {i : Fin D1.n} {j : Fin D2.n}
     (h : EConsTy (D1.ty i) (D2.ty j)) : (i, j) ∈ Set.range (meetCell D1 D2) :=
   witnessCell_range h
 
-/-- Every runtime-consistent pair of entries is a meet cell, through its tags. -/
+/-- Every runtime-consistent pair of entries is an entry of the meet, through its
+tags. -/
 theorem meetD_cell_exists {D1 D2 : FDist} {i : Fin D1.n} {j : Fin D2.n}
     (h : EConsTy (D1.ty i) (D2.ty j)) :
     ∃ c, meetDL D1 D2 c = i ∧ meetDR D1 D2 c = j :=
   witness_cell_exists h
 
-/-- A meet cell is determined by its two tags. -/
+/-- An entry of the meet is determined by its two tags. -/
 theorem meetD_cell_unique {D1 D2 : FDist} {c c' : Fin (meetD D1 D2).n}
     (h1 : meetDL D1 D2 c = meetDL D1 D2 c') (h2 : meetDR D1 D2 c = meetDR D1 D2 c') :
     c = c' :=
@@ -86,15 +87,16 @@ theorem sum_meetD_grid {D1 D2 : FDist} (G : Fin D1.n → Fin D2.n → ℝ)
     (∑ c, G (meetDL D1 D2 c) (meetDR D1 D2 c)) = ∑ i, ∑ j, G i j :=
   sum_witness_grid G hdead
 
-/-- The entry of a meet cell, as a `some`: the simple meet of the two operand
-entries a cell comes from is defined, and it is the entry of the cell. -/
+/-- The type of an entry of the meet, as a `some`: the simple meet of the two
+operand entries the entry comes from is defined, and it is the type of the
+entry. -/
 theorem meetD_ty_spec (D1 D2 : FDist) (c : Fin (meetD D1 D2).n) :
     meetTy (D1.ty (meetDL D1 D2 c)) (D2.ty (meetDR D1 D2 c)) = some ((meetD D1 D2).ty c) := by
   obtain ⟨m, hm⟩ := Option.isSome_iff_exists.mp (cons_meetTy_isSome (meetCell_cons D1 D2 c))
   rw [meetD_ty', hm, Option.getD_some]
 
-/-- The solutions of the meet's formula, without the existential: a cell
-weighting solves it iff its push-forwards along the two tags solve the operands
+/-- The solutions of the meet's formula, without the existential: a weight
+vector on the entries solves it iff its push-forwards along the two tags solve the operands
 and it is nonnegative. -/
 theorem meetD_C_iff (D1 D2 : FDist) (w : Fin (meetD D1 D2).n → ℝ) :
     (meetD D1 D2).C w ↔
@@ -147,7 +149,7 @@ theorem meetD_sat_iff_econsD {D1 D2 : FDist} :
 The meet of well-formed, runtime-consistent operands is well-formed
 (`GoodTy`/`GoodD`). The satisfiability clause is `meetD_sat_of_econsD`, the
 other clauses on the formula are those of the witness construction
-(`goodD_witness_of_sat`), and every carrier cell is consistent
+(`goodD_witness_of_sat`), and every entry of the carrier is a consistent pair
 (`meetCell_cons`), so the entries recurse directly. -/
 
 mutual
@@ -203,11 +205,11 @@ The meet is below both operands in runtime precision (`EPrecTy`/`EPrecD`,
 Figure 12); the results are stated once for the operand that `π` picks. At
 distribution types the meet is tag-guidedly reductive (`TagPrec`) into the
 operand `π` along the provenance tag `π` (`meetDL` or `meetDR`, through
-`tagPrec_witness`): each cell is below the entry its tag names, by the
+`tagPrec_witness`): each entry is below the operand entry its tag names, by the
 simple-type case, and the push-forward clause is a marginal clause of the
 meet's formula. Runtime
 precision follows by `eprecD_of_tagPrec`. No consistency hypothesis is needed:
-the pointwise clause only needs the consistency of each cell's pair, which
+the pointwise clause only needs the consistency of the pair of each entry, which
 holds on the carrier. -/
 
 mutual
@@ -244,8 +246,8 @@ theorem eprec_meetTy (π : Side) : ∀ {σ τ m : FTy}, GoodTy σ → GoodTy τ 
               (eprecD_of_tagPrec (tagPrec_meetD π hgE1 hgE2) fun _ => meetD_C_nonneg)
   termination_by structural σ τ m hg1 hg2 hm => σ
 /-- The meet is tag-guidedly reductive into its operand `π` along the
-provenance tag `π`: every carrier cell is consistent, so its entry is below
-the entry of that operand, and the push-forward along the tag is a marginal
+provenance tag `π`: every entry of the carrier is a consistent pair, so its type
+is below the entry of that operand, and the push-forward along the tag is a marginal
 clause of the meet's formula. -/
 theorem tagPrec_meetD (π : Side) {D1 D2 : FDist} (hg1 : GoodD D1) (hg2 : GoodD D2) :
     TagPrec (meetD D1 D2) (π.pick D1 D2) (witnessTag EConsTy D1 D2 π) :=
@@ -311,18 +313,18 @@ operand (`tagPrec_meetD`), and hereditary validity
 `emeetTy`/`emeetD`. The typing of composed evidence in the reduction rules
 consumes these facts. -/
 
-/-! ### The cells of the tagged meet -/
+/-! ### The entries of the tagged meet -/
 
-/-- The entry of a cell of `e1 ∘ e2` is the tagged meet of the operand entries
-that its provenance names (`?` where the meet is undefined). -/
+/-- The simple evidence of an entry of `e1 ∘ e2` is the tagged meet of the
+operand entries that its provenance names (`?` where the meet is undefined). -/
 theorem emeetD_ty' (e1 e2 : TagD) (c : Fin (emeetD e1 e2).n) :
     (emeetD e1 e2).ty c
       = (emeetTy (e1.ty (meetDL e1.toF e2.toF c)) (e2.ty (meetDR e1.toF e2.toF c))).getD .unk := by
   cases e1; cases e2; rfl
 
-/-- The entry of a cell of `e1 ∘ e2`, as a `some`: every carrier cell is a
-consistent pair, so the tagged meet of the entries its tags name is defined,
-and it is the entry. -/
+/-- The simple evidence of an entry of `e1 ∘ e2`, as a `some`: every entry of
+the carrier is a consistent pair, so the tagged meet of the entries its tags name
+is defined, and it is that simple evidence. -/
 theorem emeetD_ty_spec (e1 e2 : TagD) (c : Fin (emeetD e1 e2).n) :
     emeetTy (e1.ty (meetDL e1.toF e2.toF c)) (e2.ty (meetDR e1.toF e2.toF c))
       = some ((emeetD e1 e2).ty c) := by
@@ -331,8 +333,9 @@ theorem emeetD_ty_spec (e1 e2 : TagD) (c : Fin (emeetD e1 e2).n) :
   rw [emeetD_ty']
   exact some_getD_of_map_toF ((emeetTy_toF _ _).trans h)
 
-/-- The erasure of the entry of a cell of `e1 ∘ e2` is the entry of the meet
-of the erasures at the same cell (the two have the same cells, definitionally). -/
+/-- The erasure of the simple evidence of an entry of `e1 ∘ e2` is the type of
+the same entry of the meet of the erasures (the two have the same number of
+entries, definitionally). -/
 theorem emeetD_ty_toF (e1 e2 : TagD) (c : Fin (emeetD e1 e2).n) :
     ((emeetD e1 e2).ty c).toF = (meetD e1.toF e2.toF).ty c := by
   rw [emeetD_ty', toF_getD_unk, emeetTy_toF, meetD_ty', tagD_toF_ty, tagD_toF_ty]
@@ -373,30 +376,30 @@ theorem emeetTy_pick_arrow {π : Side} {s b m : TagTy} {d : TagD}
       · exact ⟨_, rfl, ‹_›, (Option.some.inj hm).symm⟩
       · exact nomatch hm
 
-/-- The index, in the operand `a`, of a cell of the meet that keeps the tags
+/-- The index, in the operand `a`, of an entry of the meet that keeps the tags
 `π` of `a` (`meetDL` or `meetDR`). -/
 noncomputable def emeetDTag :
     (π : Side) → (a b : TagD) → Fin (emeetD (π.pick a b) (π.pick b a)).n → Fin a.n
   | .l, a, b => meetDL a.toF b.toF
   | .r, a, b => meetDR b.toF a.toF
 
-/-- The index, in the other operand `b`, of a cell of the meet that keeps the
+/-- The index, in the other operand `b`, of an entry of the meet that keeps the
 tags `π` of `a`. -/
 noncomputable def emeetDOther :
     (π : Side) → (a b : TagD) → Fin (emeetD (π.pick a b) (π.pick b a)).n → Fin b.n
   | .l, a, b => meetDR a.toF b.toF
   | .r, a, b => meetDL b.toF a.toF
 
-/-- `emeetD_ty_spec` along `π`: the entry of a cell is the tagged meet of the
-entries of the two operands that it pairs. -/
+/-- `emeetD_ty_spec` along `π`: the simple evidence of an entry is the tagged
+meet of the entries of the two operands that it pairs. -/
 theorem emeetD_ty_pick (π : Side) (a b : TagD) (c : Fin (emeetD (π.pick a b) (π.pick b a)).n) :
     emeetTy (π.pick (a.ty (emeetDTag π a b c)) (b.ty (emeetDOther π a b c)))
         (π.pick (b.ty (emeetDOther π a b c)) (a.ty (emeetDTag π a b c)))
       = some ((emeetD (π.pick a b) (π.pick b a)).ty c) := by
   cases π <;> exact emeetD_ty_spec _ _ c
 
-/-- Validity along `π` of the tagged meet from the validity of its cells: the
-tags `π` of a cell are those of the cell of `a` it comes from, and the
+/-- Validity along `π` of the tagged meet from the validity of its entries: the
+tags `π` of an entry are those of the entry of `a` it comes from, and the
 tag-guided precision composes through the reductivity of the meet into `a`
 (`tagPrec_meetD`). -/
 theorem hvalid_emeetD_of_cells {π : Side} {a b : TagD} {A : FDist}
@@ -462,15 +465,15 @@ theorem hetransTy_invariant {e1 e2 e3 : TagTy} {σ1 σ' σ2 : FTy}
     (hm3 : e1 ∘ e2 = some e3) : e3 ⊩ σ1 ∼̇ σ2 :=
   ⟨hemeetTy_valid h1.1 hg1 hg2 hm3, hemeetTy_valid h2.2 hg2 hg1 hm3⟩
 
-/-! ## Per-cell facts about composed routing evidence
+/-! ## Per-entry facts about composed routing evidence
 
 Rule (D::μ) computes the routing evidence `(μ′ ∥ μ) ∘ ξ` and steps to an
 error when the composition is undefined, that is, when its formula is
 unsatisfiable. The routing evidence is consumed by the step rather than
-written in the result, so the reduction needs only its per-cell facts and
+written in the result, so the reduction needs only its per-entry facts and
 its marginals. The lemmas below provide them from the satisfiability of the
 composition and the validity of the operands' entries; the consistency of
-each cell's pair holds on the carrier. -/
+the pair of each entry holds on the carrier. -/
 
 /-- The formula of the tagged meet is that of the meet of the erasures, so a
 solution of the composition yields solutions of both operands' formulas. -/
@@ -486,12 +489,12 @@ theorem goodD_emeetD_sat {e1 e2 : TagD} (hg1 : GoodD e1.toF) (hg2 : GoodD e2.toF
   rw [emeetD_toF] at hsat ⊢
   exact goodD_meetD_sat hg1 hg2 hsat
 
-/-- Lemma 40 (validity of the routing evidence), item 2: per-cell validity of
-a composed evidence: the entry of each cell is valid for the pair of entries
-of `A` and `C` that its tags name. Each side inherits the validity of its
-operand's entry, and the consistency the composition needs is that of the
-cell's pair, which holds on the carrier. Rule (D::μ) uses it to type each
-per-cell coercion. -/
+/-- Lemma 40 (validity of the routing evidence), item 2: per-entry validity of
+a composed evidence: the simple evidence of each entry is valid for the pair of
+entries of `A` and `C` that its tags name. Each side inherits the validity of
+its operand's entry, and the consistency the composition needs is that of the
+pair of the entry, which holds on the carrier. Rule (D::μ) uses it to type each
+per-entry coercion. -/
 theorem hemeetD_entry : ∀ {e1 e2 : TagD} {A C : FDist},
     (∀ (i : Fin e1.n) (h : e1.l i < A.n), e1.ty i ⊩[.l] A.ty ⟨_, h⟩) →
     (∀ (j : Fin e2.n) (h : e2.r j < C.n), e2.ty j ⊩[.r] C.ty ⟨_, h⟩) →
@@ -504,10 +507,10 @@ theorem hemeetD_entry : ∀ {e1 e2 : TagD} {A C : FDist},
       ⟨hemeetTy_valid (hcL (meetDL e1.toF e2.toF c) h1) (hg1 _) (hg2 _) (emeetD_ty_spec e1 e2 c),
        hemeetTy_valid (hcR (meetDR e1.toF e2.toF c) h2) (hg2 _) (hg1 _) (emeetD_ty_spec e1 e2 c)⟩
 
-/-- Lemma 40 (validity of the routing evidence), item 2: per-cell
+/-- Lemma 40 (validity of the routing evidence), item 2: per-entry
 well-formedness of a composed evidence, assuming only that the operands' entries
-are well-formed: the entry of a cell is the meet of two well-formed consistent
-entries. -/
+are well-formed: the simple evidence of an entry is the meet of two well-formed
+consistent entries. -/
 theorem goodTy_emeetD_entry : ∀ {e1 e2 : TagD},
     (∀ i : Fin e1.n, GoodTy (e1.ty i).toF) →
     (∀ j : Fin e2.n, GoodTy (e2.ty j).toF) →
@@ -532,7 +535,7 @@ theorem emeetD_pushR : ∀ {e1 e2 : TagD} {C : FDist},
 /-! ## The tagged meet of two types (`tagMeetTy`/`tagMeetD`)
 
 The meet of two types, tagged at every level with the projections of the
-carrier cells: the tagged witness construction (`tagWitness`) on the
+entries of the carrier: the tagged witness construction (`tagWitness`) on the
 runtime-consistent pairs. Elaboration uses it to build the evidence of an
 ascription; it is hereditarily valid on both sides. -/
 
@@ -561,8 +564,8 @@ end
 
 /-- The tagged meet of two distribution types: the tagged witness construction
 on the runtime-consistent pairs, with the entries `tagMeetDty` and the left
-and right projections of each carrier cell as tags. Its cells and formula are
-those of `meetD D1 D2`, definitionally. -/
+and right projections of each entry of the carrier as tags. Its number of entries
+and its formula are those of `meetD D1 D2`, definitionally. -/
 noncomputable def tagMeetD (D1 D2 : FDist) : TagD :=
   tagWitness EConsTy D1 D2 (tagMeetDty D1 D2) Fin.val Fin.val
 
@@ -575,8 +578,8 @@ scoped infixl:69 (name := tagMeetTyStx) " ⊓ᵗ " => tagMeetTy
 evidence. -/
 scoped infixl:69 (name := tagMeetDStx) " ⊓ᵗ " => tagMeetD
 
-/-- The tagged meet of two types, unfolded: the cells and formula of the meet,
-and the projections of each cell as tags. -/
+/-- The tagged meet of two types, unfolded: the number of entries and the formula
+of the meet, and the projections of each entry as tags. -/
 theorem tagMeetD_eq (D1 D2 : FDist) :
     tagMeetD D1 D2 = ⟨(meetD D1 D2).n, tagMeetDty D1 D2, (meetD D1 D2).C,
       fun c => (meetDL D1 D2 c).val, fun c => (meetDR D1 D2 c).val⟩ := rfl
@@ -636,23 +639,24 @@ theorem tagMeetTy_toF : ∀ (t1 t2 : FTy),
       rw [toF_getD_unk, tagMeetTy_toF]
 end
 
-/-! ### The cells of the tagged meet of two types -/
+/-! ### The entries of the tagged meet of two types -/
 
-/-- The entry of a cell of `tagMeetD D1 D2` is the tagged meet of the operand
-entries named by its tags. -/
+/-- The simple evidence of an entry of `tagMeetD D1 D2` is the tagged meet of
+the operand entries named by its tags. -/
 theorem tagMeetD_ty' (D1 D2 : FDist) (c : Fin (tagMeetD D1 D2).n) :
     (tagMeetD D1 D2).ty c
       = (tagMeetTy (D1.ty (meetDL D1 D2 c)) (D2.ty (meetDR D1 D2 c))).getD .unk := by
   cases D1; cases D2; rfl
 
-/-- The erasure of the entry of a cell of `tagMeetD D1 D2` is the entry of the
-meet. -/
+/-- The erasure of the simple evidence of an entry of `tagMeetD D1 D2` is the
+type of the same entry of the meet. -/
 theorem tagMeetD_ty_toF (D1 D2 : FDist) (c : Fin (tagMeetD D1 D2).n) :
     ((tagMeetD D1 D2).ty c).toF = (meetD D1 D2).ty c := by
   rw [tagMeetD_ty', toF_getD_unk, tagMeetTy_toF, meetD_ty']
 
-/-- The entry of a cell of `tagMeetD D1 D2`, as a `some`: the tagged meet of
-the two operand entries a cell comes from is defined, and it is the entry. -/
+/-- The simple evidence of an entry of `tagMeetD D1 D2`, as a `some`: the tagged
+meet of the two operand entries the entry comes from is defined, and it is that
+simple evidence. -/
 theorem tagMeetD_ty_spec (D1 D2 : FDist) (c : Fin (tagMeetD D1 D2).n) :
     tagMeetTy (D1.ty (meetDL D1 D2 c)) (D2.ty (meetDR D1 D2 c))
       = some ((tagMeetD D1 D2).ty c) := by
@@ -684,8 +688,8 @@ theorem hvtag_tagMeetTy : ∀ {σ σ' : FTy}, GoodTy σ → GoodTy σ' → σ �
           rfl
 /-- Lemma 35 (validity of the meet), distribution types: the tagged meet of two
 well-formed distribution types is hereditarily valid on both sides: every
-carrier cell pairs consistent entries, so its entry is the hereditarily valid
-tagged meet of those entries. -/
+entry of the carrier pairs consistent entries, so its simple evidence is the
+hereditarily valid tagged meet of those entries. -/
 theorem hvalid_tagMeetD : ∀ {D D' : FDist}, GoodD D → GoodD D' →
     D ⊓ᵗ D' ⊩[.l] D ∧ D ⊓ᵗ D' ⊩[.r] D'
   | .mk _ _ _, .mk _ _ _, hg1, hg2 =>
@@ -763,8 +767,8 @@ solves the meet's formula and, restricted to the carrier, `T` couples `x`
 with that solution (`witness_coupling_of_glue`). -/
 
 /-- The coupling part of the greatest-lower-bound property of the meet: the
-coupling it produces sends each entry of `X` only to meet cells whose two
-provenance tags (`meetDL`, `meetDR`) are related to it by the input couplings
+coupling it produces sends each entry of `X` only to entries of the meet whose
+two provenance tags (`meetDL`, `meetDR`) are related to it by the input couplings
 `R1` and `R2`. The precision of the entries is added in
 `eprec_meetD_glb` and `eprec_meetD_glb_tags`. -/
 theorem eprec_meetD_glb_core : ∀ {X A B : FDist}
@@ -856,7 +860,7 @@ theorem eprec_meetD_glb : ∀ {X A B : FDist}, GoodD X →
 end
 
 /-- Tag-aware form of `eprec_meetD_glb`: the coupling it produces sends each
-entry of `X` only to meet cells whose two provenance tags (`meetDL`,
+entry of `X` only to entries of the meet whose two provenance tags (`meetDL`,
 `meetDR`) are related to it by the input couplings `R1` and `R2`. The routed
 cases of the dynamic gradual guarantee use it: the left tag names the value
 being routed and the right tag its target entry. -/

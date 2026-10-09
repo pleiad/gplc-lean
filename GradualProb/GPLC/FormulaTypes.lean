@@ -198,10 +198,10 @@ inductive ConsTy : FTy → FTy → Prop where
       ConsTy (.arrow s1 D1) (.arrow s2 D2)
 /-- Definition 4 (type consistency, inductively), formula distribution types:
 the lifting of consistency to the two symbolic distributions (`SymLift`: a
-coupling of a solution of each formula whose positive cells relate consistent
-entries), plus the two coverage clauses. As in `PrecD`, the lifted relation is
-an explicit witness `R` contained in `ConsTy`, and the coverage existentials
-are the witness functions `fL`, `fR`. `ConsD.intro`, `ConsD.coup` and
+coupling of a solution of each formula with positive weight only on pairs of
+consistent entries), plus the two coverage clauses. As in `PrecD`, the lifted
+relation is an explicit witness `R` contained in `ConsTy`, and the coverage
+existentials are the witness functions `fL`, `fR`. `ConsD.intro`, `ConsD.coup` and
 `ConsD.cov` state the rule on `ConsTy` itself. -/
 inductive ConsD : FDist → FDist → Prop where
   | mk : ∀ {D1 D2 : FDist} (R : Fin D1.n → Fin D2.n → Prop)
@@ -340,8 +340,9 @@ inductive EConsTy : FTy → FTy → Prop where
   | arrow : ∀ {s1 D1 s2 D2}, EConsTy s1 s2 → EConsD D1 D2 →
       EConsTy (.arrow s1 D1) (.arrow s2 D2)
 /-- Runtime consistency (Figure 12), on distribution types: the lifting
-clause of `ConsD` (a coupling of a solution of each formula whose positive
-cells relate consistent entries), with the relation `R` as an explicit witness,
+clause of `ConsD` (a coupling of a solution of each formula with positive
+weight only on pairs of consistent entries), with the relation `R` as an
+explicit witness,
 and no coverage clauses. An entry to which the coupling gives probability `0`
 needs no partner. -/
 inductive EConsD : FDist → FDist → Prop where
@@ -634,27 +635,27 @@ def chooseSemU (D1 D2 : FDist) : FDist :=
 @[simp] theorem chooseSemU_ty (D1 D2 : FDist) :
     (chooseSemU D1 D2).ty = Fin.append D1.ty D2.ty := rfl
 
-/-- The cells of `D₁ ⊕_a D₂`: those of `D₁` followed by those of `D₂`. -/
+/-- The entries of `D₁ ⊕_a D₂`: those of `D₁` followed by those of `D₂`. -/
 @[simp] theorem chooseSem_n (a : ℝ) (D1 D2 : FDist) :
     (chooseSem a D1 D2).n = D1.n + D2.n := rfl
 
-/-- The cells of `D₁ ⊕_? D₂`: those of `D₁` followed by those of `D₂`. -/
+/-- The entries of `D₁ ⊕_? D₂`: those of `D₁` followed by those of `D₂`. -/
 @[simp] theorem chooseSemU_n (D1 D2 : FDist) :
     (chooseSemU D1 D2).n = D1.n + D2.n := rfl
 
-/-- A left cell of `D₁ ⊕_a D₂` carries the entry of `D₁`. -/
+/-- A left entry of `D₁ ⊕_a D₂` is an entry of `D₁`. -/
 @[simp] theorem chooseSem_ty_castAdd (a : ℝ) (D1 D2 : FDist) (i : Fin D1.n) :
     (chooseSem a D1 D2).ty (Fin.castAdd D2.n i) = D1.ty i := Fin.append_left _ _ _
 
-/-- A right cell of `D₁ ⊕_a D₂` carries the entry of `D₂`. -/
+/-- A right entry of `D₁ ⊕_a D₂` is an entry of `D₂`. -/
 @[simp] theorem chooseSem_ty_natAdd (a : ℝ) (D1 D2 : FDist) (j : Fin D2.n) :
     (chooseSem a D1 D2).ty (Fin.natAdd D1.n j) = D2.ty j := Fin.append_right _ _ _
 
-/-- A left cell of `D₁ ⊕_? D₂` carries the entry of `D₁`. -/
+/-- A left entry of `D₁ ⊕_? D₂` is an entry of `D₁`. -/
 @[simp] theorem chooseSemU_ty_castAdd (D1 D2 : FDist) (i : Fin D1.n) :
     (chooseSemU D1 D2).ty (Fin.castAdd D2.n i) = D1.ty i := Fin.append_left _ _ _
 
-/-- A right cell of `D₁ ⊕_? D₂` carries the entry of `D₂`. -/
+/-- A right entry of `D₁ ⊕_? D₂` is an entry of `D₂`. -/
 @[simp] theorem chooseSemU_ty_natAdd (D1 D2 : FDist) (j : Fin D2.n) :
     (chooseSemU D1 D2).ty (Fin.natAdd D1.n j) = D2.ty j := Fin.append_right _ _ _
 
@@ -717,7 +718,7 @@ the branches, all existentially quantified. -/
       (∀ i, (F i).C (b i)) ∧
       ∀ k, x k = p (finSigmaFinEquiv.symm k).1 * b _ (finSigmaFinEquiv.symm k).2)
 
-/-- The cells of `letSem D F`: the cells of every `F i`, side by side. -/
+/-- The entries of `letSem D F`: the entries of every `F i`, side by side. -/
 @[simp] theorem letSem_n (D : FDist) (F : Fin D.n → FDist) :
     (letSem D F).n = ∑ i, (F i).n := rfl
 
@@ -727,13 +728,13 @@ the branches, all existentially quantified. -/
 probability `1` (`topF` is `pointF .unk`). -/
 @[reducible] def pointF (σ : FTy) : FDist := .mk 1 (fun _ => σ) (fun p => p 0 = 1)
 
-/-- A singleton type has one cell. -/
+/-- A singleton type has one entry. -/
 @[simp] theorem pointF_n (σ : FTy) : (pointF σ).n = 1 := rfl
 
 /-- The entry of a singleton type is its simple type. -/
 @[simp] theorem pointF_ty (σ : FTy) (i : Fin (pointF σ).n) : (pointF σ).ty i = σ := rfl
 
-/-- The solutions of a singleton type put probability `1` on its cell. -/
+/-- The solutions of a singleton type put probability `1` on its entry. -/
 @[simp] theorem pointF_C (σ : FTy) (p : Fin (pointF σ).n → ℝ) :
     (pointF σ).C p ↔ p 0 = 1 := Iff.rfl
 

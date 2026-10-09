@@ -442,7 +442,7 @@ theorem reorderD_left_marginal (D1 D2 : FDist) {ω : Fin (D1 ∥ D2).n → ℝ}
 /-- Lemma 66 (routing preserves marginals), rule (D::μ): the routing evidence
 `emeetD (tagReorderD D1 D2) ξ` has formula `meetD (reorderD D1 D2) ξ.toF`
 (`routing_toF`) and left projection `reorderDL ∘ meetDL`, so the
-probability the cells draw from each outcome `i` of `D1` adds up to the
+probability the entries of the routing evidence draw from each outcome `i` of `D1` adds up to the
 probability of `i` in a solution of `D1`, by `pushfwd_comp`. -/
 theorem routing_left_marginal (D1 D2 : FDist) (ξ : TagD)
     {ω : Fin ((D1 ∥ D2) ⊓ ξ.toF).n → ℝ}
@@ -704,14 +704,14 @@ theorem erTm_subst0 {tm : Tm} {m : SPLC.Tm} (h : ErTm tm m) {tw : Val} {w : SPLC
 The erasure compares a TPLC configuration (symbolic probabilities closed by a
 formula) with an SPLC distribution value (concrete probabilities). For a
 solution `q` of the configuration's formula, the target gives an SPLC value `w`
-the total probability of its cells that erase to `w`. -/
+the total probability of its outcomes that erase to `w`. -/
 
 /-- The probability that the configuration `V`, under the solution `q` of its
 formula, gives to the values satisfying `P`: the weight (`massOf`) of `P`. -/
 noncomputable def pMass (P : Val → Prop) (V : DConf) (q : Fin V.n → ℝ) : ℝ :=
   massOf P V.val q
 
-/-- The erased measure of Figure 19: the probability of the cells of `V` that
+/-- The erased measure of Figure 19: the probability of the outcomes of `V` that
 erase to `w`, under the solution `q`. -/
 noncomputable def erMass (V : DConf) (q : Fin V.n → ℝ) (w : SPLC.Val) : ℝ :=
   pMass (fun tv => ErVal tv w) V q
@@ -755,7 +755,7 @@ theorem pMass_pushforward (P : Val → Prop) {V : DConf} {K : ℕ} (ω : Fin K �
     massOf P wv ω = pMass P V (pushfwd g ω) :=
   (massOf_congr (val' := fun c => V.val (g c)) hP).trans (massOf_pushfwd P g V.val ω).symm
 
-/-- If `erv i` is the erasure of the cell `i` of `V`, the erased measure of `V`
+/-- If `erv i` is the erasure of the outcome `i` of `V`, the erased measure of `V`
 is the push-forward of the solution along `erv`. -/
 theorem erMass_eq_pushfwd {V : DConf} {erv : Fin V.n → SPLC.Val}
     (herv : ∀ i, ErVal (V.val i) (erv i)) (q : Fin V.n → ℝ) (w : SPLC.Val) :
@@ -811,7 +811,7 @@ theorem srcMass_wsum {K : ℕ} (cells : Fin K → ℝ × DistVal) (w : SPLC.Val)
 
 Two finite families that give each value the same probability average any
 function of the value alike. This step turns the target mixture, indexed by
-routing cells, into the source mixture, indexed by outcomes. -/
+the entries of the routing evidence, into the source mixture, indexed by outcomes. -/
 
 /-- Lemma 63 (regrouping by fibers): if `a` and `b` give the same total weight to
 each fiber of `f` and `g`, then `∑ i, a i * F (f i) = ∑ j, b j * F (g j)` for
@@ -969,11 +969,11 @@ theorem erVal_ascV_redSt {ε : TagTy} {tv : Val} {σ' : FTy} {k} {w : Val}
 
 /-! ## Coverage (Lemma 67)
 
-Every cell of the result erases to some SPLC value. The statement does not
+Every outcome of the result erases to some SPLC value. The statement does not
 mention the source run; the `let` case of `erasure_meas` uses it to know which
-source value each bound term cell stands for. -/
+source value each outcome of the bound term stands for. -/
 
-/-- Lemma 67 (coverage), over `RedSt`: every cell of the result of a term that
+/-- Lemma 67 (coverage), over `RedSt`: every outcome of the result of a term that
 erases has an erasure. `erasure_cover_red` is the form over `Red`. -/
 theorem erasure_cover : ∀ (k : ℕ) {tm : Tm} {V : DConf}, RedSt tm k V →
     ∀ {m : SPLC.Tm}, ErTm tm m → ∀ i, ∃ v, ErVal (V.val i) v := by
@@ -1052,11 +1052,11 @@ theorem erMass_point_of_erVal {tv : Val} {v : SPLC.Val} (hv : ErVal tv v)
 
 `reorderD_left_marginal` and `routing_left_marginal` are stated over the
 untagged operators `reorderD D1 D2` and `meetD (reorderD D1 D2) ξ.toF`, while
-rules (Dlet) and (D::μ) name their cells over the tagged evidences
+rules (Dlet) and (D::μ) name their entries over the tagged evidences
 (`tagReorderD D1 D2` and `emeetD (tagReorderD D1 D2) ξ`), whose formula types
 `toF` agree with the untagged operators only propositionally
 (`tagReorderD_toF`, `routing_toF`). The two lemmas below state the marginals
-over the tagged carrier, through the cell projections the rules use. Both are
+over the tagged carrier, through the entry projections the rules use. Both are
 the transport of marginals along the left tags of a tagged witness construction
 (`tagWitness_left_marginal`): for (Dlet) the tags are the entry indices of
 `D1`; for (D::μ) they are the tags of `tagReorderD D1 D2`, whose push-forward
@@ -1090,8 +1090,8 @@ theorem routing_left_marginal_tag (D1 D2 : FDist) (ξ : TagD)
 /-! ### Source-side lemmas for the `let` case -/
 
 /-- The measure of a (Dlet) mixture, regrouped by the outcomes `g c` of the
-bound term, when the per-cell equation is available only at cells of positive
-weight: cells of weight zero contribute nothing. -/
+bound term, when the equation at each entry is available only at entries of positive
+weight: entries of weight zero contribute nothing. -/
 theorem pMass_dlet_pos (P : Val → Prop) {K NI : ℕ} (W : (Fin K → ℝ) → Prop)
     (Vk : Fin K → DConf) (ω : Fin K → ℝ) (b : (k : Fin K) → Fin (Vk k).n → ℝ)
     (hnn : ∀ c, 0 ≤ ω c) (g : Fin K → Fin NI) (S : Fin NI → ℝ)
@@ -1106,7 +1106,7 @@ theorem pMass_dlet_pos (P : Val → Prop) {K NI : ℕ} (W : (Fin K → ℝ) → 
   · rw [← hzero, zero_mul, zero_mul]
 
 /-- Nonnegativity of a source mixture, assuming nonnegative probabilities only in
-the cells of positive weight. -/
+the summands of positive weight. -/
 theorem distVal_wsumList_nonneg : ∀ (L : List (ℝ × DistVal)),
     (∀ c ∈ L, 0 ≤ c.1) → (∀ c ∈ L, 0 < c.1 → ∀ i, 0 ≤ c.2.mass i) →
     ∀ i, 0 ≤ (DistVal.wsumList L).mass i
@@ -1143,7 +1143,7 @@ theorem distVal_wsum_nonneg {K : ℕ} (cells : Fin K → ℝ × DistVal)
 
 /-! ## Source probabilities are nonnegative
 
-The `let` case turns "this source cell has nonzero probability" into "this value
+The `let` case turns "this source outcome has nonzero probability" into "this value
 has positive probability", which requires that probabilities do not cancel. It
 suffices that every probability written in the program lies in `[0,1]`. -/
 
@@ -1463,10 +1463,10 @@ theorem erasure_meas : ∀ (k : ℕ) {tm : Tm} {V : DConf}, RedSt tm k V →
           have hfib : ∀ v, pushfwd erv (pushfwd idx ω) v
               = srcMass Vs0 v := fun v =>
             (erMass_eq_pushfwd herv _ v).symm.trans (hsceq v)
-          -- a cell of positive weight routes to an outcome of positive source measure
+          -- an entry of positive weight routes to an outcome of positive source measure
           have hsrcpos : ∀ c, 0 < ω c → 0 < srcMass Vs0 (erv (idx c)) := fun c hc =>
             ((hc.trans_le (le_pushfwd hωnn c)).trans_le (le_pushfwd hq0nn _)).trans_eq (hfib _)
-          -- the induction hypothesis for each cell
+          -- the induction hypothesis for each entry
           have hcellIH : ∀ (c : Fin (tagReorderD V0.confF ⟨n, ty, C⟩).n) (j : Fin K),
               Vs0.val (cells j) = erv (idx c) → 0 < ω c →
               pMass (fun tv => ErVal tv w) (Vk c) (b c) = srcMass (Ws j) w := by
@@ -1482,7 +1482,7 @@ theorem erasure_meas : ∀ (k : ℕ) {tm : Tm} {V : DConf}, RedSt tm k V →
             rw [← hval] at hErb
             exact ih _ (by omega) hbred' hErb (hsbody j) (b c) (hbC c hpos) w
           -- the measure of the body at each source outcome of positive measure: such
-          -- an outcome is the erasure of a cell of positive weight (`pushfwd_pos`)
+          -- an outcome is the erasure of an entry of positive weight (`pushfwd_pos`)
           have hF : ∀ v : SPLC.Val, ∃ r : ℝ, ∀ j : Fin K, Vs0.val (cells j) = v →
               0 < srcMass Vs0 v → srcMass (Ws j) w = r := by
             intro v
@@ -2237,10 +2237,10 @@ theorem routing_sat_below {V : DConf} {μ : FDist} {εd : TagD} {T : DTy}
   rw [routing_toF]
   exact h
 
-/-! ### Cells of (Dlet) coerce between syntactically equal types
+/-! ### The entries of (Dlet) coerce between syntactically equal types
 
-The cells of the initial reordering pair entries with syntactically equal
-types, so a cell of (Dlet) coerces a value to the type it already has and its
+The entries of the initial reordering pair entries with syntactically equal
+types, so an entry of (Dlet) coerces a value to the type it already has and its
 annotation does not change. Of the two routed rules, only (D::μ) changes
 annotations, and its target type is written in the term. -/
 
@@ -2671,7 +2671,7 @@ routing formula of (D::μ) is always satisfiable. The typing gives the two
 precisions the composition lemmas need (`vtag_evTy` on the validity premises),
 with the value's annotation as common bound. The induction also yields that
 every value of the result is in `SRV`, which the routed rules consume: in
-(Dlet) a cell coerces to a type syntactically equal to the value's
+(Dlet) an entry coerces to a type syntactically equal to the value's
 (`dlet_cell_ty_eq`), and in (D::μ) the target type is written in the term. -/
 
 
@@ -3264,7 +3264,7 @@ The article states both over `Red`, for a term that is typed and satisfies `SRT`
 (Definition 16). `redSt_of_red` (Lemma 62) reduces them to the forms over
 `RedSt`. -/
 
-/-- Lemma 67 (coverage): every cell of the result of a reduction of a closed
+/-- Lemma 67 (coverage): every outcome of the result of a reduction of a closed
 TPLC term that erases, is typed and satisfies `SRT` erases to some SPLC
 value. -/
 theorem erasure_cover_red {k : ℕ} {tm : Tm} {V : DConf} (hred : tm ⇓[k] V)

@@ -93,11 +93,11 @@ def DistVal.scale (a : ℝ) (V : DistVal) : DistVal := ⟨V.n, V.val, fun i => a
 /-- Sum of two distribution values: the union of the two multisets. -/
 def DistVal.append (V1 V2 : DistVal) : DistVal :=
   ⟨V1.n + V2.n, Fin.append V1.val V2.val, Fin.append V1.mass V2.mass⟩
-/-- Weighted sum of a list of `(weight, distribution-value)` cells. -/
+/-- Weighted sum of a list of `(weight, distribution-value)` pairs. -/
 def DistVal.wsumList : List (ℝ × DistVal) → DistVal
   | [] => ⟨0, Fin.elim0, Fin.elim0⟩
   | (a, V) :: rest => (V.scale a).append (DistVal.wsumList rest)
-/-- Weighted sum of a finite family of cells (`∑ₖ ωₖ · Vₖ`). -/
+/-- Weighted sum of a finite family of pairs `(ωₖ, Vₖ)` (`∑ₖ ωₖ · Vₖ`). -/
 def DistVal.wsum {K : ℕ} (cells : Fin K → ℝ × DistVal) : DistVal :=
   DistVal.wsumList (List.ofFn cells)
 
@@ -620,8 +620,8 @@ theorem Tm.closeAt_subst_comm : ∀ {ρ : List Val} {m : Tm} {k : ℕ} {w : Val}
 The number of outcomes of a weighted sum and the value and probability found at
 each of its positions. -/
 
-/-- Unfolding a weighted sum of `K+1` cells: the first cell, scaled, followed by
-the weighted sum of the others. -/
+/-- Unfolding a weighted sum of `K+1` summands: the first summand, scaled,
+followed by the weighted sum of the others. -/
 theorem wsum_succ {K : ℕ} (cells : Fin (K + 1) → ℝ × DistVal) :
     DistVal.wsum cells
       = ((cells 0).2.scale (cells 0).1).append
@@ -849,7 +849,7 @@ theorem isStaticTm_closeAt : ∀ {ρ : List Val} {m : Tm} {k : ℕ}, IsStaticTm 
         (fun w hw => hρ w (by simp [hw]))
 
 /-- Value and probability of a weighted sum at a position, through the
-decomposition `finSigmaFinEquiv` of the position into cell and offset. -/
+decomposition `finSigmaFinEquiv` of the position into summand and offset. -/
 theorem wsum_pair_at {K : ℕ} (ω : Fin K → ℝ) (Vk : Fin K → DistVal)
     (hn : (DistVal.wsum (fun c => (ω c, Vk c))).n = ∑ c, (Vk c).n)
     (i : Fin (DistVal.wsum (fun c => (ω c, Vk c))).n) :
@@ -873,7 +873,7 @@ theorem wsum_pair_at {K : ℕ} (ω : Fin K → ℝ) (Vk : Fin K → DistVal)
   exact wsum_at (fun c => (ω c, Vk c)) sk si hv i.isLt
 
 /-- The value at any position of a weighted sum is a value of one of its
-cells. -/
+summands. -/
 theorem wsum_val_decomp {K : ℕ} (ω : Fin K → ℝ) (Vk : Fin K → DistVal)
     (i : Fin (DistVal.wsum (fun k => (ω k, Vk k))).n) :
     ∃ (k : Fin K) (x : Fin (Vk k).n),
@@ -924,10 +924,10 @@ theorem red_static : ∀ {m : Tm} {k : ℕ} {V : DistVal}, Red m k V → IsStati
 
 /-! ## Weighted sums, further lemmas
 
-Every value of a cell is a value of the weighted sum. -/
+Every value of a summand is a value of the weighted sum. -/
 
-/-- Every value of a cell appears in the weighted sum, whatever its weight (the
-converse of `wsum_val_decomp`). -/
+/-- Every value of a summand appears in the weighted sum, whatever its weight
+(the converse of `wsum_val_decomp`). -/
 theorem wsum_val_mem {K : ℕ} (ω : Fin K → ℝ) (Vk : Fin K → DistVal)
     (a : Fin K) (x : Fin (Vk a).n) :
     ∃ i, (DistVal.wsum (fun k => (ω k, Vk k))).val i = (Vk a).val x := by

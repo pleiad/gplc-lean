@@ -16,7 +16,7 @@ Lemma 8 (reductivity of the meet operator).
 ## Main results
 
 * `dgg_cell`, `dgg_cell_cond`, `dgg_cell_ef`: one value ascription (the
-  coercion of a single cell), rules (D::σ) and (Derr::σ); `dgg_cell_ef` is
+  coercion at a single entry), rules (D::σ) and (Derr::σ); `dgg_cell_ef` is
   Lemma 49 (coercion of related values).
 * `dgg_app_cond`: the case of rule (Dapp).
 * `dgg_dascD_cond`: the case of rule (D::μ).
@@ -28,10 +28,10 @@ Lemma 8 (reductivity of the meet operator).
 
 ## Reading guide
 
-The file goes from the cell level to the rule level: runtime types of related
-values, the single-cell simulation, the precision of the computed routing
+The file goes from the entry level to the rule level: runtime types of related
+values, the simulation of one coercion, the precision of the computed routing
 evidences (`eprecD_routing`, `eprecD_routing_tags`), the assembly of routed
-cells, the congruences for mixtures, the inversion lemmas for the reduction
+entries, the congruences for mixtures, the inversion lemmas for the reduction
 of the less precise term (`red_*_inv`), and finally the conditional cases
 `dgg_app_cond`, `dgg_dascD_cond` and `dgg_dlet_cond`.
 -/
@@ -48,8 +48,8 @@ open Classical
 
 The routed rules (Dlet) and (D::μ) compare the two computed routing
 evidences, and for that they need the runtime types of the two terms they reduce first to
-be related. Precision of configurations relates them: the positive cells of
-its coupling relate values, and related values exhibit related types. -/
+be related. Precision of configurations relates them: its coupling has positive
+weight only between related values, and related values exhibit related types. -/
 
 /-- A closed well-typed value that is not an error is an ascription. -/
 theorem asc_of_not_err {v : Val} (hv : HasTyV [] v v.tyEntry)
@@ -98,10 +98,10 @@ theorem eprecD_confF_of_dconfprec {V V' : DConf} (h : DConfPrec V V') :
 /-! ## Error-free configurations
 
 Theorem 5 assumes that the reduction of the more precise term raises no
-error. `ErrFree` is the corresponding property of a configuration: every cell
+error. `ErrFree` is the corresponding property of a configuration: every outcome
 with positive probability is an ascription, not an error. -/
 
-/-- No cell of positive probability in any solution of the configuration is an
+/-- No outcome of positive probability in any solution of the configuration is an
 error. -/
 def ErrFree (V : DConf) : Prop :=
   ∀ p, V.C p → ∀ c, 0 < p c →
@@ -112,9 +112,9 @@ theorem errFree_point {ε : TagTy} {u : Raw} {σ : FTy} :
     ErrFree (DConf.point (.asc ε u σ)) := fun _ _ _ _ => ⟨ε, u, σ, rfl⟩
 
 
-/-! ## Simulation of a single cell
+/-! ## Simulation of a single coercion
 
-Rules (D::μ) and (Dlet) coerce, in each cell of their routing evidence, a
+Rules (D::μ) and (Dlet) coerce, at each entry of their routing evidence, a
 value of the term they reduce first to the type of the target entry. The lemmas below
 simulate one such coercion, independently of the syntactic shape of the
 term: related values, related evidences and related targets give related
@@ -183,7 +183,7 @@ theorem dgg_cell {e e' : TagTy} {v v' w : Val} {σt σt' : FTy}
 
 /-! ## Precision of the routing evidences
 
-Rule (D::μ) routes the cells of the ascribed term's result through the evidence
+Rule (D::μ) routes the outcomes of the ascribed term's result through the evidence
 `E = meetD (reorderD μ′ μ) ξ`, where `μ′` is the runtime type of the
 ascribed term, `μ` its static type and `ξ` the evidence of the ascription.
 Writing `E′ = meetD (reorderD μ′′ μₗ) ξ′` for the less precise side, the
@@ -224,7 +224,7 @@ theorem eprecD_routing {γp γl A B : FDist} {εd εd' : FDist}
 /-! ### The routing evidence and the meet of erasures
 
 Rule (D::μ) computes the routing evidence `(μ′ ∥ μ) ∘ ξ` on tagged evidences.
-Its cells and formula are those of the meet of erasures
+Its entries and formula are those of the meet of erasures
 `meetD (tagReorderD μ′ μ).toF ξ.toF`, definitionally (`emeetD_toF` equates
 the entries), so the relational lemmas of this module are stated over that
 meet and read the tagged entries directly. `routing_toF` relates it to the
@@ -272,10 +272,10 @@ theorem dascD_less_precise_defined {γp γl A B : FDist} {εd εd' : TagD}
     hsat
 
 
-/-! ## Determinism of the cell coercion and the conditional simulation
+/-! ## Determinism of the coercion at a single entry and the conditional simulation
 
 Theorem 5 is stated for a given reduction of the less precise term, so the
-cell simulation compares two given steps. The ascription of a value is
+simulation of one coercion compares two given steps. The ascription of a value is
 deterministic, so it suffices to compose `dgg_cell` with that determinism. -/
 
 /-- The one-step reduction of a value ascription is deterministic. -/
@@ -284,7 +284,7 @@ theorem red_ascV_det {e : TagTy} {v : Val} {σt : FTy} {w1 w2 : Val}
     (h2 : Red (.ascV e v σt) 1 (DConf.point w2)) : w1 = w2 :=
   Option.some.inj ((red_ascV_iff.1 h1).symm.trans (red_ascV_iff.1 h2))
 
-/-- The cell simulation with both steps given. -/
+/-- The simulation of one coercion with both steps given. -/
 theorem dgg_cell_cond {e e' : TagTy} {v v' w w' : Val} {σt σt' : FTy}
     (hv : HasTyV [] v v.tyEntry) (hv' : HasTyV [] v' v'.tyEntry)
     (hevR : HVTag .r e σt) (hev' : HVTagTy e' v'.tyEntry σt')
@@ -302,14 +302,14 @@ theorem dgg_cell_cond {e e' : TagTy} {v v' w w' : Val} {σt σt' : FTy}
 
 /-! ## Tag-aware precision of the routing evidences -/
 
-/-- The tag-aware version of `eprecD_routing`: a coupling between the cells
+/-- The tag-aware version of `eprecD_routing`: a coupling between the entries
 of the two routing evidences that, on each pair of positive weight, relates
-the cell evidences (tag-aware precision), the values they route (left tags,
+the evidences of the entries (tag-aware precision), the values they route (left tags,
 against the relation `Rval` given by the induction hypothesis on the
 ascribed term) and their targets (right tags). These are the obligations that
-rule `PrecV.asc` imposes on each paired cell. The routed value and the target
-of a cell are given as the functions `fL`, `fR` with the equations that tie
-them to the cell projections, so that rule (D::μ) can pass its own forms. -/
+rule `PrecV.asc` imposes on each paired entry. The routed value and the target
+of an entry are given as the functions `fL`, `fR` with the equations that tie
+them to the entry projections, so that rule (D::μ) can pass its own forms. -/
 theorem eprecD_routing_tags {γp γl A B γb γb' : FDist} {εd εd' : TagD}
     {Rval : Fin γp.n → Fin γl.n → Prop}
     {fL : Fin (emeetD (tagReorderD γp A) εd).n → Fin γp.n}
@@ -343,7 +343,7 @@ theorem eprecD_routing_tags {γp γl A B γb γb' : FDist} {εd εd' : TagD}
   -- evidence written in the term, by reductivity of the meet
   have hA : TagPrecD .r (emeetD (tagReorderD γp A) εd) εd' γb γb' :=
     tagPrecD_emeet_compose hgεd hgrp hev
-  -- the functional coupling given by the left projections of the cells
+  -- the functional coupling given by the left projections of the entries
   have hTR : TagPrec (tagReorderD γp A).toF γp (reorderDL γp A) :=
     tagPrec_of_eq (tagReorderD_toF γp A) (tagPrec_reorderD .l hgγp hgA)
   have hEL : TagPrec (meetD (tagReorderD γp A).toF εd.toF) γp
@@ -359,7 +359,7 @@ theorem eprecD_routing_tags {γp γl A B γb γb' : FDist} {εd εd' : TagD}
       hgγl (fun k i' h => EPrecTy.trans (hEL.cell k) (hRval _ _ h))
       (coup_comp_fun (R := Rval) hEL hgX.good hrun) href).mono fun k c' ⟨h1, h2⟩ =>
         ⟨by rw [tagD_toF_ty, tagReorderD_ty_toF]; exact h1, h2⟩
-  -- the lifting of (A), with the targets of the precise cells written as `fR`
+  -- the lifting of (A), with the targets of the precise entries written as `fR`
   have hevE : SymLiftAll (fun k c'' =>
       TagPrecTy .r (γb.ty (fR k)) (γb'.ty ⟨εd'.r c'', hev.tag_lt' _⟩)
         ((emeetD (tagReorderD γp A) εd).ty k) (εd'.ty c'') ∧
@@ -380,7 +380,7 @@ theorem eprecD_routing_tags {γp γl A B γb γb' : FDist} {εd εd' : TagD}
       hreord hevE)
     fun k c h => ?_
   obtain ⟨-, h1, h2ty, h2dst⟩ := h
-  -- the less precise target of a cell of the meet is that of its origin in `ξ′`
+  -- the less precise target of an entry of the meet is that of its origin in `ξ′`
   have hdst' : (⟨εd'.r (meetDR (tagReorderD γl B).toF εd'.toF c), hev.tag_lt' _⟩ : Fin γb'.n)
       = fR' c :=
     (Fin.ext (hfR' c)).symm
@@ -407,17 +407,17 @@ theorem eprecD_routing_tags {γp γl A B γb γb' : FDist} {εd εd' : TagD}
       exact h1.1
   · rw [hfL k, hfL' c]; exact h1.2
 
-/-! ## Assembly of the routed cells
+/-! ## Assembly of the routed entries
 
-Given a coupling between the cells of two routing evidences that, on each
-pair of positive weight, relates the routed values, the cell evidences and
-the targets, the cell coercions are simulated one by one and the resulting
+Given a coupling between the entries of two routing evidences that, on each
+pair of positive weight, relates the routed values, the evidences of the entries and
+the targets, the coercions at the entries are simulated one by one and the resulting
 configurations are related. The statement does not mention the operators,
 so it serves rules (D::μ) and (Dlet) alike. -/
 /-- Lemma 50 (precision of configurations is a congruence), item 3, for the
-routed cells: if a coupling of the cells of two routing evidences relates, on
-each pair of positive weight, the coerced values, the cell evidences and the
-targets, then the configurations of the coerced cells are related. -/
+routed entries: if a coupling of the entries of two routing evidences relates, on
+each pair of positive weight, the coerced values, the evidences of the entries and the
+targets, then the configurations of the coerced entries are related. -/
 theorem dgg_cells_assemble {Ep Ep' : FDist}
     {wv : Fin Ep.n → Val} {wv' : Fin Ep'.n → Val}
     {etag : Fin Ep.n → TagTy} {etag' : Fin Ep'.n → TagTy}
@@ -443,10 +443,10 @@ theorem dgg_cells_assemble {Ep Ep' : FDist}
 
 /-! ## The case of rule (D::μ)
 
-The per-cell premises of the rule, the validity of the two routing evidences
-cell by cell (`hvalidFor_dascD_evidence`) and the coupling of their cells
+The entrywise premises of the rule, the validity of the two routing evidences
+entry by entry (`hvalidFor_dascD_evidence`) and the coupling of their entries
 (`eprecD_routing_tags`) feed the assembler `dgg_cells_assemble`; everything
-is stated over the cells of the routing evidences the rule computes. -/
+is stated over the entries of the routing evidences the rule computes. -/
 /-- The case of rule (D::μ): the mixtures that the rule builds from related
 ascribed terms, with related evidences, are related. -/
 theorem dgg_dascD {εd εd' : TagD} {μ μ' μb μb' : FDist} {V0 V0' : DConf}
@@ -585,7 +585,7 @@ theorem tprecV_asc_inv : ∀ {ε : TagTy} {u : Raw} {σ : FTy} {v' : Val},
   | _, _, _, _, .asc hε hεL hu hσ => ⟨_, _, _, rfl, hε, hεL, hu, hσ⟩
 
 
-/-! ## Cell simulation without errors
+/-! ## Simulation of one coercion without errors
 
 When the precise result is not an error, the precise coercion composed, so
 the less precise one composes too, both produce ascriptions and rule `errV` is not
@@ -669,14 +669,14 @@ theorem red_errD_inv : ∀ {μ : FDist} {k : ℕ} {V : DConf},
 
 /-! ## Weighted sums of configurations
 
-Two weighted sums whose cells are coupled, with coupled branches related,
+Two weighted sums whose summands are coupled, with coupled branches related,
 are related. The coupling of the sums is the product of the coupling of the
-cells with the coupling of each branch (`Lift.sigmaFin`), and the less precise
+summands with the coupling of each branch (`Lift.sigmaFin`), and the less precise
 solution of a branch is the convex combination, weighted by the coupling, of
 the solutions that the coupled precise branches propose; hence the convexity
 hypothesis `hconv`, which the formulas of well-typed configurations satisfy. -/
 
-/-- The cell `(k, i)` of a weighted sum holds the value of the cell `i` of the
+/-- The outcome `(k, i)` of a weighted sum holds the value of the outcome `i` of the
 branch `k`. -/
 theorem DConf.wsum_val {K : ℕ} (W : (Fin K → ℝ) → Prop) (Vk : Fin K → DConf) (k : Fin K)
     (i : Fin (Vk k).n) : (DConf.wsum W Vk).val (finSigmaFinEquiv ⟨k, i⟩) = (Vk k).val i := by
@@ -698,7 +698,7 @@ theorem dconfprec_wsum {K K' : ℕ} {W : (Fin K → ℝ) → Prop}
   rintro x ⟨ω, hW, b, hb, hx⟩
   obtain rfl : x = _ := funext hx
   obtain ⟨ω', hW', t, ht, hs⟩ := hcoup ω hW
-  -- for each pair of cells of positive weight, the less precise solution that
+  -- for each pair of summands of positive weight, the less precise solution that
   -- precision proposes (any solution for the pairs of weight zero)
   have hpair : ∀ k c, ∃ r : Fin (Vk' c).n → ℝ, (Vk' c).C r ∧ (0 < t k c →
       Lift (fun i j => PrecV [] [] ((Vk k).val i) ((Vk' c).val j)) (b k) r) := by
@@ -723,13 +723,13 @@ theorem dconfprec_wsum {K K' : ℕ} {W : (Fin K → ℝ) → Prop}
     exact h
 
 
-/-! ## Coupling of the routing cells of `let` -/
+/-! ## Coupling of the routing entries of `let` -/
 
 /-- The routing evidence of rule (Dlet) is a plain reordering. Given a
 coupling of the bound terms' configurations whose support satisfies `Rval`,
-this builds a coupling between the cells of the two reorderings that, on
+this builds a coupling between the entries of the two reorderings that, on
 each pair of positive weight, relates the routed values (left tags), the
-cell evidences against the targets (tag-aware precision) and the targets
+evidences of the entries against the targets (tag-aware precision) and the targets
 (type precision). -/
 theorem eprecD_letrouting_tags {γp γl μ B : FDist}
     {Rval : Fin γp.n → Fin γl.n → Prop}
@@ -752,14 +752,14 @@ theorem eprecD_letrouting_tags {γp γl μ B : FDist}
       (coup_comp_fun (R := Rval) hEL hgrp.good hrun) href)
     fun k c ⟨hval, _, htag, hdst⟩ => ⟨hval, htag, hdst⟩
 
-/-! ## The cells of rule (Dlet)
+/-! ## The entries of rule (Dlet)
 
-The cell coercions are compared with `dgg_cell_cond`, fed by the coupling of
-`eprecD_letrouting_tags`. The validity of each cell evidence comes from the
+The coercions at the entries are compared with `dgg_cell_cond`, fed by the coupling of
+`eprecD_letrouting_tags`. The validity of the evidence at each entry comes from the
 hereditary validity of the tagged reordering, and the types of the values
 from type safety. -/
 
-/-- Validity along `π`, cell by cell, of the tagged reordering. -/
+/-- Validity along `π`, entry by entry, of the tagged reordering. -/
 theorem tagReorderD_entry (π : Side) {D1 D2 : FDist} (hg1 : GoodD D1) (hg2 : GoodD D2)
     (c : Fin (reorderD D1 D2).n) :
     HVTag π ((tagReorderD D1 D2).ty c) ((π.pick D1 D2).ty (witnessTag Eq D1 D2 π c)) := by
@@ -781,7 +781,7 @@ theorem red_ascV_result_typed {ε : TagTy} {v : Val} {σt : FTy} {w : Val}
   rw [hval] at hw
   rwa [tyEntry_of_red_ascV h] at hw
 
-/-- Typing of the cell ascription that rule (Dlet) performs. -/
+/-- Typing of the ascription that rule (Dlet) performs at each entry. -/
 theorem hasTy_letcell {D1 D2 : FDist} {V0 : DConf} (hg1 : GoodD D1)
     (hg2 : GoodD D2) (hgr : GoodD (reorderD D1 D2))
     (hvals : ∀ i, HasTyV [] (V0.val i) ((V0.val i).tyEntry))
@@ -800,8 +800,8 @@ theorem hasTy_letcell {D1 D2 : FDist} {V0 : DConf} (hg1 : GoodD D1)
     (by rw [tagReorderD_ty_toF D1 D2 c]; exact hgr.tys c) (hg2.tys _)
 
 /-- The weighted sums produced by rule (Dlet) on both sides are related, given
-the cell coercions and a hypothesis `hbranch` relating the branches of
-coupled cells. -/
+the coercions at the entries and a hypothesis `hbranch` relating the branches of
+coupled entries. -/
 theorem dgg_dlet_cells {μ μ' : FDist} {V0 V0' : DConf}
     {wv : Fin (reorderD V0.confF μ).n → Val}
     {wv' : Fin (reorderD V0'.confF μ').n → Val}
@@ -839,7 +839,7 @@ theorem dgg_dlet_cells {μ μ' : FDist} {V0 V0' : DConf}
       (fun p hp => hIH p hp) href ω hω
   refine ⟨ω', hω', t, ht, fun k c hpos => ?_⟩
   obtain ⟨hval, htag, hdst⟩ := hs k c hpos
-  -- the cell coercion, simulated
+  -- the coercion at the entry, simulated
   have hcoerce : PrecV [] [] (wv k) (wv' c) :=
     dgg_cell_cond (hvals _) (hvals' _)
       (tagReorderD_entry .r hgV0 hgμ k)
@@ -1065,7 +1065,7 @@ theorem red_ascT_inv : ∀ {εd : TagD} {m : Tm} {μb : FDist} {k : ℕ}
 
 /-- The case of rule (D::μ). The less precise reduction is inverted: its failure case
 contradicts the satisfiability that `dascD_less_precise_defined` transports from the
-precise side, so it composed, and its cell steps are those that `dgg_dascD`
+precise side, so it composed, and its steps at each entry are those that `dgg_dascD`
 requires. -/
 theorem dgg_dascD_cond {εd εd' : TagD} {m m' : Tm} {μ μb μb' : FDist}
     {k1 kL : ℕ} {V0 : DConf} {VL : DConf}
@@ -1141,9 +1141,9 @@ theorem red_letin_inv : ∀ {m : Tm} {μ : FDist} {ns : Fin μ.n → Tm} {k : �
 
 /-! ## The case of rule (Dlet)
 
-The coupling of cells (`eprecD_letrouting_tags`) gives, on each pair of
-positive weight, related routed values and related branches; the cell
-coercions are compared with `dgg_cell_cond`, the bodies with
+The coupling of entries (`eprecD_letrouting_tags`) gives, on each pair of
+positive weight, related routed values and related branches; the
+coercions at the entries are compared with `dgg_cell_cond`, the bodies with
 `dgg_dlet_branch_cond`, and `dconfprec_wsum` assembles the result. -/
 
 /-- If a weighted sum is error-free, so is each branch of positive weight. -/
@@ -1240,7 +1240,7 @@ theorem dgg_dlet_cond {m m' : Tm} {μ μ' : FDist} {ns : Fin μ.n → Tm}
         (reorderD_sat_of_refDist hgV0'.good.sat hrefV0')
     have hgrp : GoodD (reorderD V0.confF μ) := goodD_reorderD hgV0 hgμ hrd
     have hgrp' : GoodD (reorderD V0'.confF μ') := goodD_reorderD hgV0' hgμ' hrd'
-    -- the coerced values, typed at the target of their cell
+    -- the coerced values, typed at the target of their entry
     have hwtyP : ∀ k : Fin (reorderD V0.confF μ).n,
         HasTyV [] (wv k) (μ.ty (reorderDR V0.confF μ k)) := fun k =>
       red_ascV_result_typed (hasTy_letcell hgV0 hgμ hgrp hvals rfl k) (hcell k)

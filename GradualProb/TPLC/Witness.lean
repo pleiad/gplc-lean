@@ -5,17 +5,17 @@ import GradualProb.TPLC.Evidence
 
 The article builds the meet of distribution types and the reordering initial
 evidence from one construction, `W_f(D₁, D₂)` (Section 5.2, "Meet Operator"):
-for a partial operator `f` on simple types, one cell per pair `(i, j)` of
-entries of the operands in the domain of `f`, with `f(σ_i, σ'_j)` as the entry
-of the cell, and as formula the coupling condition of Definition 3 between the
-two operands, stated over the cells. The meet is `W_⊓` and the reordering
+for a partial operator `f` on simple types, one entry for each pair `(i, j)` of
+entries of the operands in the domain of `f`, with `f(σ_i, σ'_j)` as the type
+of the entry, and as formula the coupling condition of Definition 3 between the
+two operands, stated over the entries. The meet is `W_⊓` and the reordering
 initial evidence is `W_{id₌}` (Definition 11); the tagged evidences that the
 reduction rules compute (`emeetD`, `tagReorderD`) and the initial evidence of
 an ascription in the elaboration (`tagMeetD`) are the same construction with
 tags (`tagWitness`).
 
 This module defines the construction once (`witness`, `tagWitness`) and
-proves its cell API: the enumeration of the cells and its two provenance tags
+proves its entry API: the enumeration of the entries and its two provenance tags
 (`witnessCell`, `witnessL`, `witnessR`, and `witnessTag` for either), the
 solutions of the formula (`witness_C_iff`), definedness as the lifting of the carrier predicate
 (`witness_sat_iff_symLift`), well-formedness (`goodD_witness_of_sat`),
@@ -31,11 +31,12 @@ this API what does not recurse on the simple-type operator.
 The domain of `f` is given as a predicate `P` on the pair of entry types,
 separately from the entries: on the meet it is runtime consistency `EConsTy`
 (Figure 12), which the `Option`-valued `meetTy` does not decide at arrows, and
-on `id₌` it is equality. The entries are given on the cells
-(`ty : Fin (liveK P D1 D2).card → FTy`) rather than as `f` applied to the pair,
+on `id₌` it is equality. The types of the entries are given as a function on the
+entries (`ty : Fin (liveK P D1 D2).card → FTy`) rather than as `f` applied to
+the pair,
 so that each instance can compute them by structural recursion inside the
 `mutual` block of its simple-type operator (`meetDty`, `reorderDty`); that the
-entry of a cell is `f` of its pair is the lemma `meetD_ty_spec`
+type of an entry is `f` of its pair is the lemma `meetD_ty_spec`
 (`reorderD_ty_spec`) of the instance. As everywhere, formulas are sets of
 solutions, so the operands' probability variables, which the article leaves
 free in the formula of `W_f`, are existentially quantified (`witnessC`).
@@ -87,72 +88,73 @@ theorem liveEmb_inj {P : FTy → FTy → Prop} {D1 D2 : FDist} :
     Function.Injective (liveEmb P D1 D2) := fun _ _ h =>
   (Finset.orderEmbOfFin (liveK P D1 D2) rfl).injective h
 
-/-! ## The cells and their provenance tags
+/-! ## The entries and their provenance tags
 
-A cell of `W_f(D1, D2)` is read as the pair of operand entries it enumerates;
+An entry of `W_f(D1, D2)` is read as the pair of operand entries it enumerates;
 the two components are its provenance tags, the `l` and `r` of the article's
 tagged variable `ω = ⟨α, l, r⟩`. -/
 
-/-- The pair of operand entries that a cell enumerates. -/
+/-- The pair of operand entries that an entry enumerates. -/
 noncomputable def witnessCell (P : FTy → FTy → Prop) (D1 D2 : FDist)
     (c : Fin (liveK P D1 D2).card) : Fin D1.n × Fin D2.n :=
   finProdFinEquiv.symm (liveEmb P D1 D2 c)
 
-/-- Left provenance tag of a cell: the index of the left operand's entry it
+/-- Left provenance tag of an entry: the index of the left operand's entry it
 comes from. -/
 noncomputable def witnessL (P : FTy → FTy → Prop) (D1 D2 : FDist)
     (c : Fin (liveK P D1 D2).card) : Fin D1.n :=
   (witnessCell P D1 D2 c).1
 
-/-- Right provenance tag of a cell: the index of the right operand's entry it
+/-- Right provenance tag of an entry: the index of the right operand's entry it
 comes from. -/
 noncomputable def witnessR (P : FTy → FTy → Prop) (D1 D2 : FDist)
     (c : Fin (liveK P D1 D2).card) : Fin D2.n :=
   (witnessCell P D1 D2 c).2
 
-/-- The provenance tag `π` of a cell: `witnessL` or `witnessR`. -/
+/-- The provenance tag `π` of an entry: `witnessL` or `witnessR`. -/
 noncomputable def witnessTag (P : FTy → FTy → Prop) (D1 D2 : FDist) :
     (π : Side) → Fin (liveK P D1 D2).card → Fin (π.pick D1 D2).n
   | .l => witnessL P D1 D2
   | .r => witnessR P D1 D2
 
-/-- The operand entry that the tag `π` of a cell names. -/
+/-- The operand entry that the tag `π` of an entry names. -/
 theorem witnessTag_ty (P : FTy → FTy → Prop) (D1 D2 : FDist) (π : Side)
     (c : Fin (liveK P D1 D2).card) :
     (π.pick D1 D2).ty (witnessTag P D1 D2 π c)
       = π.pick (D1.ty (witnessL P D1 D2 c)) (D2.ty (witnessR P D1 D2 c)) := by
   cases π <;> rfl
 
-/-- Every cell pairs entries in the domain of `f`. -/
+/-- Every entry pairs operand entries in the domain of `f`. -/
 theorem witnessCell_prop (P : FTy → FTy → Prop) (D1 D2 : FDist) (c : Fin (liveK P D1 D2).card) :
     P (D1.ty (witnessL P D1 D2 c)) (D2.ty (witnessR P D1 D2 c)) :=
   mem_liveK.mp (liveEmb_mem P D1 D2 c)
 
-/-- The cells, read as pairs of entries, are distinct. -/
+/-- The entries, read as pairs of operand entries, are distinct. -/
 theorem witnessCell_injective (P : FTy → FTy → Prop) (D1 D2 : FDist) :
     Function.Injective (witnessCell P D1 D2) :=
   finProdFinEquiv.symm.injective.comp liveEmb_inj
 
-/-- Every pair of entries in the domain of `f` is a cell. -/
+/-- Every pair of operand entries in the domain of `f` is an entry. -/
 theorem witnessCell_range {P : FTy → FTy → Prop} {D1 D2 : FDist} {i : Fin D1.n} {j : Fin D2.n}
     (h : P (D1.ty i) (D2.ty j)) : (i, j) ∈ Set.range (witnessCell P D1 D2) := by
   obtain ⟨c, hc⟩ := liveEmb_exists (P := P) (D1 := D1) (D2 := D2) (k := finProdFinEquiv (i, j))
     (mem_liveK.mpr (by rwa [Equiv.symm_apply_apply]))
   exact ⟨c, (congrArg finProdFinEquiv.symm hc).trans (Equiv.symm_apply_apply _ _)⟩
 
-/-- Every pair of entries in the domain of `f` is a cell, through its tags. -/
+/-- Every pair of operand entries in the domain of `f` is an entry, through its
+tags. -/
 theorem witness_cell_exists {P : FTy → FTy → Prop} {D1 D2 : FDist} {i : Fin D1.n} {j : Fin D2.n}
     (h : P (D1.ty i) (D2.ty j)) : ∃ c, witnessL P D1 D2 c = i ∧ witnessR P D1 D2 c = j :=
   let ⟨c, hc⟩ := witnessCell_range h
   ⟨c, congrArg Prod.fst hc, congrArg Prod.snd hc⟩
 
-/-- A cell is determined by its two tags. -/
+/-- An entry is determined by its two tags. -/
 theorem witness_cell_unique {P : FTy → FTy → Prop} {D1 D2 : FDist} {c c' : Fin (liveK P D1 D2).card}
     (h1 : witnessL P D1 D2 c = witnessL P D1 D2 c') (h2 : witnessR P D1 D2 c = witnessR P D1 D2 c') :
     c = c' :=
   witnessCell_injective P D1 D2 (Prod.ext h1 h2)
 
-/-- A sum over the cells of a grid function that vanishes on the pairs outside
+/-- A sum over the entries of a grid function that vanishes on the pairs outside
 the domain of `f` is the full double grid sum. -/
 theorem sum_witness_grid {P : FTy → FTy → Prop} {D1 D2 : FDist} (G : Fin D1.n → Fin D2.n → ℝ)
     (hdead : ∀ i j, ¬ P (D1.ty i) (D2.ty j) → G i j = 0) :
@@ -163,12 +165,13 @@ theorem sum_witness_grid {P : FTy → FTy → Prop} {D1 D2 : FDist} (G : Fin D1.
 /-! ## The construction -/
 
 /-- The formula of `W_f(D1, D2)`: the coupling condition between the two
-operands over the cells.
+operands over the entries.
 
 In the article the formula mentions the operands' probability variables
 freely, conjoined with the operands' formulas. Here formulas are solution
 sets, so the operands' solutions `pp`, `qq` are existentially quantified: a
-cell weighting `w` is a solution when some solutions of the two operands are
+weight vector `w` on the entries is a solution when some solutions of the two
+operands are
 its marginals, the push-forwards of `w` along the two provenance tags. -/
 def witnessC (P : FTy → FTy → Prop) (D1 D2 : FDist) (w : Fin (liveK P D1 D2).card → ℝ) : Prop :=
   ∃ pp qq, D1.C pp ∧ D2.C qq ∧
@@ -176,10 +179,10 @@ def witnessC (P : FTy → FTy → Prop) (D1 D2 : FDist) (w : Fin (liveK P D1 D2)
     (∀ j, pushfwd (witnessR P D1 D2) w j = qq j) ∧
     (∀ c, 0 ≤ w c)
 
-/-- The witness construction `W_f(D1, D2)` of the article: one cell per pair
-of entries in the domain of `f` (the predicate `P`), with the entries `ty`
-given on the cells, and the coupling formula `witnessC` over the cells. The
-number of cells and the formula are those of the components, definitionally. -/
+/-- The witness construction `W_f(D1, D2)` of the article: one entry for each
+pair of operand entries in the domain of `f` (the predicate `P`), with the types
+`ty` of the entries, and the coupling formula `witnessC` over the entries. The
+number of entries and the formula are those of the components, definitionally. -/
 noncomputable def witness (P : FTy → FTy → Prop) (D1 D2 : FDist)
     (ty : Fin (liveK P D1 D2).card → FTy) : FDist :=
   ⟨(liveK P D1 D2).card, ty, witnessC P D1 D2⟩
@@ -192,8 +195,8 @@ noncomputable def witness (P : FTy → FTy → Prop) (D1 D2 : FDist)
 @[simp] theorem witness_ty (P : FTy → FTy → Prop) (D1 D2 : FDist)
     (ty : Fin (liveK P D1 D2).card → FTy) : (witness P D1 D2 ty).ty = ty := rfl
 
-/-- The solutions of the formula, without the existential: a cell weighting
-solves it iff its push-forwards along the two tags solve the operands and it
+/-- The solutions of the formula, without the existential: a weight vector on
+the entries solves it iff its push-forwards along the two tags solve the operands and it
 is nonnegative. -/
 theorem witness_C_iff {P : FTy → FTy → Prop} {D1 D2 : FDist} {ty : Fin (liveK P D1 D2).card → FTy}
     (w : Fin (witness P D1 D2 ty).n → ℝ) :
@@ -217,10 +220,10 @@ theorem witness_C_nonneg {P : FTy → FTy → Prop} {D1 D2 : FDist}
 
 The construction is total; the definedness of `W_f(D1, D2)` in the article
 is the satisfiability of its formula. A solution of that formula is a weight
-vector on the cells whose two push-forwards solve the operands; it relates
-them by the lifting of `P` (Definition 3), because every cell is a pair in the
+vector on the entries whose two push-forwards solve the operands; it relates
+them by the lifting of `P` (Definition 3), because every entry is a pair in the
 domain of `f` (`Lift.pushfwd_prod`). Conversely, a coupling supported on the
-domain of `f` restricts to the cells (`IsCoupling.restrict_of_supp`). -/
+domain of `f` restricts to the entries (`IsCoupling.restrict_of_supp`). -/
 
 /-- A solution of the formula gives the lifting of `P` between the operands:
 its two push-forwards are related by the lifting of `P` on the entries. -/
@@ -232,7 +235,7 @@ theorem symLift_of_witness_sat {P : FTy → FTy → Prop} {D1 D2 : FDist}
 
 /-- A coupling between solutions of the operands, supported on the domain of
 `f` and read through the provenance tags, is a solution of the formula: the
-restriction of the coupling to the cells (`IsCoupling.restrict_of_supp`). -/
+restriction of the coupling to the entries (`IsCoupling.restrict_of_supp`). -/
 theorem witness_C_of_coupling {P : FTy → FTy → Prop} {D1 D2 : FDist}
     {ty : Fin (liveK P D1 D2).card → FTy} {p : Fin D1.n → ℝ} {q : Fin D2.n → ℝ}
     {a : Fin D1.n → Fin D2.n → ℝ} (hp : D1.C p) (hq : D2.C q) (ha : IsCoupling p q a)
@@ -255,7 +258,7 @@ theorem witness_sat_of_lift {P : FTy → FTy → Prop} {D1 D2 : FDist}
 /-- A three-index weight `T` whose totals over the pairs of entries are a
 weight vector `x` and whose totals over the first index are a coupling `ω`
 of solutions of the operands supported on the domain of `f`, restricted to
-the cells, couples `x` with the solution of the formula that `ω` restricts to
+the entries, couples `x` with the solution of the formula that `ω` restricts to
 (`isCoupling_restrict_cells`). This is the step shared by the greatest lower
 bound of the meet (Lemma 8) and of the reordering (Lemma 48): there `T`
 glues two couplings through a shared solution (`glue₃`). -/
@@ -356,15 +359,16 @@ theorem eprecD_witness (π : Side) {P : FTy → FTy → Prop} {D1 D2 : FDist}
 /-! ## The tagged construction
 
 The evidences that the reduction rules and the elaboration compute are
-`W_f(D1, D2)` with tags: the cell `(i, j)` carries the tag `l i` of the left
+`W_f(D1, D2)` with tags: the entry `(i, j)` carries the tag `l i` of the left
 operand's entry and the tag `r j` of the right one's. For the initial evidence
 of an ascription in the elaboration (`tagMeetD`) and the routing evidence of a
 `let` (`tagReorderD`) the tags are
 the entry indices themselves; for consistent transitivity (`emeetD`) they are
 the tags of the operand evidences, so that the tags compose. -/
 
-/-- `W_f(D1, D2)` as a tagged evidence: the cells and formula of `witness`,
-the tagged entries `ty`, and as tags of the cell `(i, j)` the tags `l i` and
+/-- `W_f(D1, D2)` as a tagged evidence: the number of entries and the formula of
+`witness`, the tagged types `ty` of the entries, and as tags of the entry
+`(i, j)` the tags `l i` and
 `r j` of the operand entries. -/
 noncomputable def tagWitness (P : FTy → FTy → Prop) (D1 D2 : FDist)
     (ty : Fin (liveK P D1 D2).card → TagTy) (l : Fin D1.n → ℕ) (r : Fin D2.n → ℕ) : TagD :=
@@ -403,7 +407,7 @@ theorem hvalid_tagWitness {P : FTy → FTy → Prop} {D1 D2 : FDist}
 /-- Marginals along the left tags. If the left tags of the left operand send
 each of its solutions to a solution of `E`, then the left tags of the tagged
 construction (the left tags of the left operand at the left projection of each
-cell) send each of its solutions to a solution of `E`: the left marginal
+entry) send each of its solutions to a solution of `E`: the left marginal
 clause of the formula, followed by the push-forward along the operand's tags
 (`pushfwd_comp`). -/
 theorem tagWitness_left_marginal {P : FTy → FTy → Prop} {D1 D2 E : FDist}

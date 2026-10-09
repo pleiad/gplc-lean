@@ -141,7 +141,7 @@ theorem errFree_chooseU_intro {V1 V2 : DConf}
   rintro x ⟨a, -, -, p, q, hp, hq, rfl⟩ c hpos
   exact errFree_choose_intro hn1 hn2 h1 h2 _ ⟨p, q, hp, hq, rfl⟩ c hpos
 
-/-- If every cell is error-free and the weights are nonnegative, then the
+/-- If every summand is error-free and the weights are nonnegative, then the
 weighted mixture `DConf.wsum W Vk` is error-free. -/
 theorem errFree_wsum_intro {K : ℕ} {W : (Fin K → ℝ) → Prop}
     {Vk : Fin K → DConf} (hnW : ∀ ω, W ω → ∀ k, 0 ≤ ω k)
@@ -159,7 +159,7 @@ theorem redEF_ascV_asc : ∀ {e : TagTy} {v : Val} {σ : FTy} {k : ℕ}
   | _, _, _, _, _, .dascOk _ _ => ⟨_, _, _, rfl⟩
   | _, _, _, _, _, .dmon h0 => redEF_ascV_asc h0
 
-/-- The value produced by an error-free cell coercion is an ascription. -/
+/-- The value produced by an error-free coercion at a single entry is an ascription. -/
 theorem redEF_ascV_val_asc {e : TagTy} {v : Val} {σ : FTy} {k : ℕ} {w : Val}
     (h : RedEF (.ascV e v σ) k (DConf.point w)) :
     ∃ (ε : TagTy) (u : Raw) (σ' : FTy), w = .asc ε u σ' := by

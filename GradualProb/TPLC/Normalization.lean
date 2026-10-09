@@ -161,7 +161,7 @@ def NormV : Skel → Val → Prop
 
 /-- Reducible outcomes: each outcome of `V` is reducible at one of the
 declared skeletons `ds`, and that skeleton is equivalent to the skeleton of the
-outcome's own runtime type; the cellwise coercions of rules (D::μ) and
+outcome's own runtime type; the entrywise coercions of rules (D::μ) and
 (Dlet) need the latter to read reducibility at the target entry. -/
 @[reducible] def NormOut (ds : List Skel) (V : DConf) : Prop :=
   ∀ i, ∃ j : Fin ds.length,
@@ -1138,13 +1138,13 @@ theorem normEnv_get : ∀ {Γ : List FTy} {ρ : List Val} {x : ℕ} {σ : FTy},
 /-! ### Alignment for distribution ascriptions
 
 Rule (D::μ) composes the computed reordering `tagReorderD V.confF μ` with the
-evidence `εd` written in the term.  The alignment it needs is cellwise: for
-each cell of the composed evidence, the skeleton of the runtime type of the
+evidence `εd` written in the term.  The alignment it needs is entrywise: for
+each entry of the composed evidence, the skeleton of the runtime type of the
 source value and that of the target entry are equivalent. -/
 
 
 /-- The skeleton alignment a distribution ascription `εd` from `μ` to `μb`
-needs: for every configuration `V0` and every cell of the composed evidence
+needs: for every configuration `V0` and every entry of the composed evidence
 `emeetD (tagReorderD V0.confF μ) εd`, the runtime type of the source value and
 the target entry have equivalent skeletons. -/
 def AscTAlign (εd : TagD) (μ μb : FDist) : Prop :=
@@ -1159,7 +1159,7 @@ induction hypothesis provides (no determinism result for the reduction of TPLC
 is proved, so an inverted derivation need not reduce the ascribed term to that
 configuration).
 
-Every outcome (the cellwise coercion or `error`) has an entry of `μb` as its
+Every outcome (the entrywise coercion or `error`) has an entry of `μb` as its
 type (`tyEntry_of_red_ascV`), so the clause on its own skeleton holds by
 reflexivity; reducibility moves from the source skeleton to the target one by
 the alignment premise `AscTAlign`. -/
@@ -1311,10 +1311,10 @@ theorem normT_app {v w : Val} {σ : FTy} {D : FDist}
 /-! ### Rule (Dlet)
 
 This case needs no alignment premise: the routing evidence is
-`tagReorderD V.confF μ`, whose cells pair types that are syntactically equal
-(`reorderD_cell_eq`), so the cellwise coercion sends each value to its own type. -/
+`tagReorderD V.confF μ`, whose entries pair types that are syntactically equal
+(`reorderD_cell_eq`), so the entrywise coercion sends each value to its own type. -/
 
-/-- The skeleton of the type `letSem D F` of a `let`, read at a cell. -/
+/-- The skeleton of the type `letSem D F` of a `let`, read at an entry. -/
 theorem skelFD_letSem_get (D : FDist) (F : Fin D.n → FDist)
     (k : Fin (letSem D F).n) :
     (skelFD (letSem D F)).get (Fin.cast (skelFD_length _).symm k)
@@ -1322,8 +1322,9 @@ theorem skelFD_letSem_get (D : FDist) (F : Fin D.n → FDist)
           (finSigmaFinEquiv.symm k).2) :=
   skelFD_get (letSem D F) k
 
-/-- The target entry of a cell of the computed reordering is the runtime type of
-the value the cell routes: the cells pair syntactically equal types. -/
+/-- The entry of `μ` that an entry of the computed reordering targets is the
+runtime type of the value it routes: the entries pair syntactically equal
+types. -/
 theorem tagReorderD_cell_eq (V : DConf) (μ : FDist)
     (c : Fin (tagReorderD V.confF μ).n) :
     (V.val (reorderDL V.confF μ c)).tyEntry = μ.ty (reorderDR V.confF μ c) :=
@@ -1344,7 +1345,7 @@ theorem normT_letin {m : Tm} {μ : FDist} {ns : Fin μ.n → Tm}
   classical
   obtain ⟨k1, V, hred0, hout0⟩ := ih
   have hVvals := type_safety_vals hred0 htm
-  -- the cellwise coercion reduces
+  -- the entrywise coercion reduces
   have hcells : ∀ c : Fin (tagReorderD V.confF μ).n, ∃ w,
       Red (.ascV ((tagReorderD V.confF μ).ty c) (V.val (reorderDL V.confF μ c))
         (μ.ty (reorderDR V.confF μ c))) 1 (DConf.point w) :=

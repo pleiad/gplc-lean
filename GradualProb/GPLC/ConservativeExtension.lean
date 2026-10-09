@@ -310,8 +310,8 @@ end
 /-! ## Realization of singleton types (the results of values, `ascV` and `add`) -/
 
 /-- Lemma 29 (realization and the type operators), singleton types: if `σ`
-realizes `τ`, then `[ω = 1] {{σ^ω}}` realizes `{{τ^1}}`. The coupling is the
-single cell `1` (`Lift.point`). -/
+realizes `τ`, then `[ω = 1] {{σ^ω}}` realizes `{{τ^1}}`. The coupling has the
+single weight `1` (`Lift.point`). -/
 theorem realizes_point {σ : FTy} {τ : Ty} (h : σ ⇝ τ) (hs : IsStaticTy τ) :
     pointF σ ⇝ .dist [(τ, .q 1)] := by
   refine RealizesD.intro (fun _ => ⟨(0 : Fin 1), h⟩) (fun j => ?_) ⟨fun _ => 1, rfl⟩
@@ -440,7 +440,7 @@ theorem letRes_length (es : List (Ty × GProb)) (Ts : Fin es.length → DTy) :
   dentries_sumScaled_length fun j => (pval (es.get j).2, Ts j)
 
 /-- The entries of `letRes es Ts` on the dependent concatenation of the
-positions of the `Ts j`: the cell at position `l` of the block `j` holds the
+positions of the `Ts j`: the entry at position `l` of the block `j` is the
 `l`-th entry of `Ts j`, with its probability scaled by that of the `j`-th
 entry of `es`. -/
 def letResEntry (es : List (Ty × GProb)) (Ts : Fin es.length → DTy)
@@ -470,7 +470,8 @@ theorem letRes_get (es : List (Ty × GProb)) (Ts : Fin es.length → DTy)
 /-- Lemma 29 (realization and the type operators), `let`: `letSem D F` realizes
 the SPLC result `letRes es Ts`. The hypothesis `halign` (branch types at entries
 of equal simple types are `=ₛ`) is the determinism of SPLC up to `=ₛ`,
-`det_eq_tm`. For a positive cell `(i, j)` of the coupling of the bound term, `i`
+`det_eq_tm`. For a pair `(i, j)` of positive weight in the coupling of the bound
+term, `i`
 has a partner `j'` with `Ts j' =ₛ Ts j`, so `F i` realizes `Ts j`
 (`realizesD_eq`); the coupling of the result is the product of the coupling of
 the bound term with the couplings of these realizations (`Lift.sigmaFin`). -/

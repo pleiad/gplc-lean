@@ -78,10 +78,10 @@ than a premise.
 (`TPLC.TagD`) are natural numbers, as in the article, and validity
 (Definition 9, `TPLC.HValid`) checks that they name entries of the judged
 types. The routing evidences that rules (Dlet) and (D::μ) compute are
-instances of the witness construction `W_f` (`TPLC/Witness`), whose cells
+instances of the witness construction `W_f` (`TPLC/Witness`), whose entries
 are pairs of operand entries; the rules (`TPLC.Red`) name the value and the
-target entry of a cell through the projections of that pair
+target entry of each of them through the projections of that pair
 (`TPLC.reorderDL`, `TPLC.reorderDR`, `TPLC.meetDL`) rather than through the
-tags. Only the right tag of a cell of `(μ′ ∥ μ) ∘ ξ` comes from the evidence
+tags. Only the right tag of an entry of `(μ′ ∥ μ) ∘ ξ` comes from the evidence
 `ξ` written in the term; that it names an entry of the target type follows
 from the premise of rule (D::μ) that `ξ` is valid (`TPLC.TagD.HValidFor`).

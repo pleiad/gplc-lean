@@ -136,9 +136,9 @@ theorem eprec_tagMeetTy_mono {σ τ σ' τ' : FTy} {ε ε' : TagTy}
 
 The elaboration gives a literal or a λ the diagonal evidence `σ.toTag`, so the
 evidence clauses of `PrecV.asc` reduce to the precision of the types: the tags
-are identities and the cell coupling is the one of the precision itself. -/
+are identities and the coupling of the entries is the one of the precision itself. -/
 
-/-- The distribution case of `tagPrecTy_toTag`, given the cells: the coupling
+/-- The distribution case of `tagPrecTy_toTag`, given the entrywise precision: the coupling
 of the precision, read through the identity tags. -/
 theorem tagPrecD_toTagD_of_cells {π : Side} {D D' : FDist} (R : Fin D.n → Fin D'.n → Prop)
     (hR : ∀ i j, R i j → PrecTy (D.ty i) (D'.ty j)) (hl : SymLiftAll R D.C D'.C)
@@ -176,20 +176,20 @@ require of the evidences the elaboration produces:
 where `a` is the operand whose tags `π` the meet keeps: the annotation for
 `r` and the type of the ascribed value for `l`. When `a` is not an arrow this is
 `eprec_tagMeetTy_mono`. In the arrow case the evidence is the tagged meet of the
-domains and of the codomains, so the distribution level is the cellwise
+domains and of the codomains, so the distribution level is the entrywise
 monotonicity of the meet (`meetD_mono_core`). The case `b′ = ?` has its own
 lemma: there the less precise evidence is the diagonal evidence of `a′`, and the
 coupling goes from the more precise meet to `a′` (`coup_comp_fun` along the
 tag `π` of the meet). -/
 
-/-- The index, in the operand `a`, of a cell of the meet whose tags `π` point
+/-- The index, in the operand `a`, of an entry of the meet whose tags `π` point
 into `a` (`meetDL` or `meetDR`). -/
 noncomputable def meetDTag :
     (π : Side) → (a b : FDist) → Fin (meetD (π.pick a b) (π.pick b a)).n → Fin a.n
   | .l, a, b => meetDL a b
   | .r, a, b => meetDR b a
 
-/-- The index, in the other operand `b`, of a cell of the meet whose tags `π`
+/-- The index, in the other operand `b`, of an entry of the meet whose tags `π`
 point into `a`. -/
 noncomputable def meetDOther :
     (π : Side) → (a b : FDist) → Fin (meetD (π.pick a b) (π.pick b a)).n → Fin b.n
@@ -244,7 +244,7 @@ theorem eprecTy_tagMeetTy_pick (π : Side) {a b a' b' : FTy} {ε ε' : TagTy}
   · exact eprec_tagMeetTy_mono hga hgb hga' hgb' ha hb hm hm' hgε
   · exact eprec_tagMeetTy_mono hgb hga hgb' hga' hb ha hm hm' hgε
 
-/-- The distribution case of `tagPrecTy_tagMeetTy`, given the cells: the
+/-- The distribution case of `tagPrecTy_tagMeetTy`, given the entrywise precision: the
 coupling is that of Lemma 12 (`meetD_mono_core`) built from the two precision
 couplings. -/
 theorem tagPrecD_tagMeetD_of_cells {π : Side} {a b a' b' : FDist}
@@ -269,7 +269,7 @@ theorem tagPrecD_tagMeetD_of_cells {π : Side} {a b a' b' : FDist}
       (meetD_mono_core hEb hEa hcb hca)
 
 /-- The distribution case of `tagPrecTy_tagMeetTy` with `b′ = ?`, given the
-cells: the coupling goes from the more precise meet to `a′` along the tag `π`
+entrywise precision: the coupling goes from the more precise meet to `a′` along the tag `π`
 of the meet. -/
 theorem tagPrecD_tagMeetD_toTag_of_cells {π : Side} {a b a' : FDist}
     (hga : GoodD a) (hgb : GoodD b) (hgm : GoodD (meetD (π.pick a b) (π.pick b a)))

@@ -161,9 +161,9 @@ scoped notation:50 (name := hasTyTClosedStx) "⊢ " m:51 " : " D:51 => HasTyT []
 Consistent transitivity coincides with the meet, `ε₁ ∘ ε₂ = ε₁ ⊓ ε₂`
 (Section 5.2). On simple types the meet is defined by the clauses of the
 article and is partial (`Option`). On distribution types it is the witness
-construction `W_⊓(D₁, D₂)` of `TPLC/Witness`: one cell per pair `(i, j)` of
-entries whose simple meet is defined, that is, of runtime-consistent entries
-(`EConsTy`, Figure 12, no coverage clauses), with that meet as entry, and as
+construction `W_⊓(D₁, D₂)` of `TPLC/Witness`: one entry for each pair `(i, j)`
+of entries whose simple meet is defined, that is, of runtime-consistent entries
+(`EConsTy`, Figure 12, no coverage clauses), with that meet as its type, and as
 formula the coupling condition between the two operands.
 
 The article's meet on distribution types is partial: it is defined when its
@@ -190,9 +190,10 @@ noncomputable def meetTy : FTy → FTy → Option FTy
       | some s => some (.arrow s (witness EConsTy D1 D2 (meetDty D1 D2)))
       | none => none
   | _, _ => none
-/-- The entries of `D1 ⊓ D2`: the simple meet of the pair of operand entries of
-each cell (the entry function of `meetD`; it is the one component that
-recurses on the entries, so it is the one defined by pattern matching). -/
+/-- The simple types of the entries of `D1 ⊓ D2`: the simple meet of the pair of
+operand entries that each entry enumerates (the entry function of `meetD`; it is
+the one component that recurses on the entries, so it is the one defined by
+pattern matching). -/
 noncomputable def meetDty : (D1 D2 : FDist) → Fin (liveK EConsTy D1 D2).card → FTy
   | .mk n1 ty1 C1, .mk n2 ty2 C2 => fun c =>
       (meetTy (ty1 (witnessL EConsTy ⟨n1, ty1, C1⟩ ⟨n2, ty2, C2⟩ c))
@@ -217,18 +218,18 @@ scoped infixl:69 (name := meetDStx) " ⊓ " => meetD
 @[simp] theorem meetD_n (D1 D2 : FDist) :
     (meetD D1 D2).n = (liveK EConsTy D1 D2).card := rfl
 
-/-! ## The cells of the meet -/
+/-! ## The entries of the meet -/
 
-/-- The pair of operand entries that a cell of `D1 ⊓ D2` enumerates. -/
+/-- The pair of operand entries that an entry of `D1 ⊓ D2` enumerates. -/
 noncomputable def meetCell (D1 D2 : FDist) (c : Fin (meetD D1 D2).n) : Fin D1.n × Fin D2.n :=
   witnessCell EConsTy D1 D2 c
 
-/-- Left provenance tag of a meet cell: the index of the left operand's entry
+/-- Left provenance tag of an entry of the meet: the index of the left operand's entry
 it comes from. -/
 noncomputable def meetDL (D1 D2 : FDist) (c : Fin (meetD D1 D2).n) : Fin D1.n :=
   (meetCell D1 D2 c).1
 
-/-- Right provenance tag of a meet cell: the index of the right operand's
+/-- Right provenance tag of an entry of the meet: the index of the right operand's
 entry it comes from. -/
 noncomputable def meetDR (D1 D2 : FDist) (c : Fin (meetD D1 D2).n) : Fin D2.n :=
   (meetCell D1 D2 c).2
@@ -241,13 +242,13 @@ theorem meetD_eq (D1 D2 : FDist) :
         (∀ i, pushfwd (meetDL D1 D2) w i = pp i) ∧
         (∀ j, pushfwd (meetDR D1 D2) w j = qq j) ∧ (∀ c, 0 ≤ w c)⟩ := rfl
 
-/-- Every cell of the meet pairs runtime-consistent entries. -/
+/-- Every entry of the meet pairs runtime-consistent operand entries. -/
 theorem meetCell_cons (D1 D2 : FDist) (c : Fin (meetD D1 D2).n) :
     EConsTy (D1.ty (meetDL D1 D2 c)) (D2.ty (meetDR D1 D2 c)) :=
   witnessCell_prop EConsTy D1 D2 c
 
-/-- The entry of a meet cell is the simple meet of the operand entries named
-by its tags. -/
+/-- The simple type of an entry of the meet is the simple meet of the operand
+entries named by its tags. -/
 theorem meetD_ty' (D1 D2 : FDist) (c : Fin (meetD D1 D2).n) :
     (meetD D1 D2).ty c
       = (meetTy (D1.ty (meetDL D1 D2 c)) (D2.ty (meetDR D1 D2 c))).getD .unk := by
@@ -284,7 +285,7 @@ theorem cons_meetTy_isSome : ∀ {σ τ : FTy}, σ ∼̇ τ → (σ ⊓ τ).isSo
 Consistent transitivity on tagged evidences, the operation the reduction rules
 use. Its erasure is the meet of the erasures (`emeetD_toF`). It is the tagged
 witness construction (`tagWitness`) on the erasures, with the tags composed as
-in the article's definition of `W_f`: the cell `(i, j)` takes the left tag
+in the article's definition of `W_f`: the entry `(i, j)` takes the left tag
 `l i` of the left operand and the right tag `r j` of the right operand. -/
 
 mutual
@@ -300,8 +301,9 @@ noncomputable def emeetTy : TagTy → TagTy → Option TagTy
       | some s => some (.arrow s (tagWitness EConsTy d1.toF d2.toF (emeetDty d1 d2) d1.l d2.r))
       | none => none
   | _, _ => none
-/-- The entries of `e1 ∘ e2`: the tagged simple meet of the pair of operand
-entries of each cell (the entry function of `emeetD`). -/
+/-- The tagged simple types of the entries of `e1 ∘ e2`: the tagged simple meet
+of the pair of operand entries that each entry enumerates (the entry function of
+`emeetD`). -/
 noncomputable def emeetDty : (e1 e2 : TagD) → Fin (liveK EConsTy e1.toF e2.toF).card → TagTy
   | .mk n1 ty1 C1 l1 r1, .mk n2 ty2 C2 l2 r2 => fun c =>
       (emeetTy
@@ -311,9 +313,10 @@ noncomputable def emeetDty : (e1 e2 : TagD) → Fin (liveK EConsTy e1.toF e2.toF
 end
 
 /-- The meet of tagged distribution evidences: the tagged witness construction
-on the erasures, with the entries `emeetDty` and the composed tags: the cell
+on the erasures, with the entries `emeetDty` and the composed tags: the entry
 `(i, j)` takes the left tag of `i` in `e1` and the right tag of `j` in `e2`.
-Its cells and formula are those of `meetD e1.toF e2.toF`, definitionally. -/
+Its number of entries and its formula are those of `meetD e1.toF e2.toF`,
+definitionally. -/
 noncomputable def emeetD (e1 e2 : TagD) : TagD :=
   tagWitness EConsTy e1.toF e2.toF (emeetDty e1 e2) e1.l e2.r
 
@@ -326,8 +329,8 @@ scoped infixr:90 (name := emeetTyStx) " ∘ " => emeetTy
 (Section 5.2). -/
 scoped infixr:90 (name := emeetDStx) " ∘ " => emeetD
 
-/-- The tagged meet, unfolded: the cells and formula of the meet of the
-erasures, and the composed tags. -/
+/-- The tagged meet, unfolded: the number of entries and the formula of the
+meet of the erasures, and the composed tags. -/
 theorem emeetD_eq (e1 e2 : TagD) :
     emeetD e1 e2 = ⟨(meetD e1.toF e2.toF).n, emeetDty e1 e2, (meetD e1.toF e2.toF).C,
       fun c => e1.l (meetDL e1.toF e2.toF c), fun c => e2.r (meetDR e1.toF e2.toF c)⟩ := rfl
@@ -365,7 +368,7 @@ theorem emeetTy_toF : ∀ (t1 t2 : TagTy),
             = some (FTy.arrow s.toF (meetD d1.toF d2.toF))
           rw [hd]
 /-- Erasure of the tagged distribution meet is the meet of the erasures. The
-number of cells and the formula agree definitionally; the entries by
+number of entries and the formula agree definitionally; the entries by
 `emeetTy_toF`. -/
 @[simp] theorem emeetD_toF : ∀ (e1 e2 : TagD),
     (emeetD e1 e2).toF = meetD e1.toF e2.toF
@@ -752,35 +755,35 @@ with formula `W`. The result of rule (D::μ). -/
 def DConf.wsumPoint {K : ℕ} (W : (Fin K → ℝ) → Prop) (wv : Fin K → Val) : DConf :=
   ⟨K, wv, W⟩
 
-/-- The cells of `a·V₁ + (1−a)·V₂`: those of `V₁` followed by those of `V₂`. -/
+/-- The outcomes of `a·V₁ + (1−a)·V₂`: those of `V₁` followed by those of `V₂`. -/
 @[simp] theorem DConf.choose_n (a : ℝ) (V1 V2 : DConf) :
     (DConf.choose a V1 V2).n = V1.n + V2.n := rfl
 
-/-- The cells of `w₁·V₁ + w₂·V₂`: those of `V₁` followed by those of `V₂`. -/
+/-- The outcomes of `w₁·V₁ + w₂·V₂`: those of `V₁` followed by those of `V₂`. -/
 @[simp] theorem DConf.chooseU_n (V1 V2 : DConf) :
     (DConf.chooseU V1 V2).n = V1.n + V2.n := rfl
 
-/-- A left cell of `a·V₁ + (1−a)·V₂` holds the value of `V₁`. -/
+/-- A left outcome of `a·V₁ + (1−a)·V₂` is the corresponding outcome of `V₁`. -/
 @[simp] theorem DConf.choose_val_castAdd (a : ℝ) (V1 V2 : DConf) (i : Fin V1.n) :
     (DConf.choose a V1 V2).val (Fin.castAdd V2.n i) = V1.val i := Fin.append_left _ _ _
 
-/-- A right cell of `a·V₁ + (1−a)·V₂` holds the value of `V₂`. -/
+/-- A right outcome of `a·V₁ + (1−a)·V₂` is the corresponding outcome of `V₂`. -/
 @[simp] theorem DConf.choose_val_natAdd (a : ℝ) (V1 V2 : DConf) (j : Fin V2.n) :
     (DConf.choose a V1 V2).val (Fin.natAdd V1.n j) = V2.val j := Fin.append_right _ _ _
 
-/-- A left cell of `w₁·V₁ + w₂·V₂` holds the value of `V₁`. -/
+/-- A left outcome of `w₁·V₁ + w₂·V₂` is the corresponding outcome of `V₁`. -/
 @[simp] theorem DConf.chooseU_val_castAdd (V1 V2 : DConf) (i : Fin V1.n) :
     (DConf.chooseU V1 V2).val (Fin.castAdd V2.n i) = V1.val i := Fin.append_left _ _ _
 
-/-- A right cell of `w₁·V₁ + w₂·V₂` holds the value of `V₂`. -/
+/-- A right outcome of `w₁·V₁ + w₂·V₂` is the corresponding outcome of `V₂`. -/
 @[simp] theorem DConf.chooseU_val_natAdd (V1 V2 : DConf) (j : Fin V2.n) :
     (DConf.chooseU V1 V2).val (Fin.natAdd V1.n j) = V2.val j := Fin.append_right _ _ _
 
-/-- The cells of `Σ_k ω_k · V_k`: the cells of every `V_k`, side by side. -/
+/-- The outcomes of `Σ_k ω_k · V_k`: the outcomes of every `V_k`, side by side. -/
 @[simp] theorem DConf.wsum_n {K : ℕ} (W : (Fin K → ℝ) → Prop) (V : Fin K → DConf) :
     (DConf.wsum W V).n = ∑ k, (V k).n := rfl
 
-/-- The cells of `Σ_c ω_c · {wv c}`: one per value. -/
+/-- The outcomes of `Σ_c ω_c · {wv c}`: one per value. -/
 @[simp] theorem DConf.wsumPoint_n {K : ℕ} (W : (Fin K → ℝ) → Prop) (wv : Fin K → Val) :
     (DConf.wsumPoint W wv).n = K := rfl
 
@@ -792,7 +795,8 @@ def DConf.errAt (μ : FDist) : DConf := ⟨μ.n, fun i => .err (μ.ty i), μ.C�
 
 The operator `γ' ∥ γ` with which rules (Dlet) and (D::μ) compute their routing
 evidence. On distribution types it is the witness construction
-`W_{id₌}(γ', γ)` of `TPLC/Witness`: its cells are the pairs of equal entries,
+`W_{id₌}(γ', γ)` of `TPLC/Witness`: its entries are the pairs of equal operand
+entries,
 and its formula is the coupling condition. Restricting to equal entries leaves
 no value without a branch because reduction does not introduce types
 (`entriesIn_red`). Like the meet, the operator is partial (`Option`) on simple
@@ -814,8 +818,9 @@ noncomputable def reorderTy : FTy → FTy → Option FTy
       | some s => some (.arrow s (witness Eq D1 D2 (reorderDty D1 D2)))
       | none => none
   | _, _ => none
-/-- The entries of `D1 ∥ D2`: the simple reordering evidence of the pair of
-operand entries of each cell (the entry function of `reorderD`). -/
+/-- The simple types of the entries of `D1 ∥ D2`: the simple reordering evidence
+of the pair of operand entries that each entry enumerates (the entry function
+of `reorderD`). -/
 noncomputable def reorderDty : (D1 D2 : FDist) → Fin (liveK Eq D1 D2).card → FTy
   | .mk n1 ty1 C1, .mk n2 ty2 C2 => fun c =>
       (reorderTy (ty1 (witnessL Eq ⟨n1, ty1, C1⟩ ⟨n2, ty2, C2⟩ c))
@@ -842,17 +847,17 @@ scoped infixl:69 (name := reorderDStx) " ∥ " => reorderD
 @[simp] theorem reorderD_n (D1 D2 : FDist) :
     (reorderD D1 D2).n = (liveK Eq D1 D2).card := rfl
 
-/-- The pair of operand entries that a cell of `D1 ∥ D2` enumerates. -/
+/-- The pair of operand entries that an entry of `D1 ∥ D2` enumerates. -/
 noncomputable def reorderCell (D1 D2 : FDist) (c : Fin (reorderD D1 D2).n) :
     Fin D1.n × Fin D2.n :=
   witnessCell Eq D1 D2 c
 
-/-- Left provenance tag of a cell of `∥`: the index of the left operand's
+/-- Left provenance tag of an entry of `∥`: the index of the left operand's
 entry it comes from. -/
 noncomputable def reorderDL (D1 D2 : FDist) (c : Fin (reorderD D1 D2).n) : Fin D1.n :=
   (reorderCell D1 D2 c).1
 
-/-- Right provenance tag of a cell of `∥`: the index of the right operand's
+/-- Right provenance tag of an entry of `∥`: the index of the right operand's
 entry it comes from. -/
 noncomputable def reorderDR (D1 D2 : FDist) (c : Fin (reorderD D1 D2).n) : Fin D2.n :=
   (reorderCell D1 D2 c).2
@@ -889,7 +894,8 @@ end
 /-- The reordering initial evidence as a tagged distribution evidence: the
 tagged witness construction on the pairs of equal entries, with the entries
 `tagReorderDty` and the two projections of each pair as its left and right
-tags. Its cells and formula are those of `reorderD D1 D2`, definitionally. -/
+tags. Its number of entries and its formula are those of `reorderD D1 D2`,
+definitionally. -/
 noncomputable def tagReorderD (D1 D2 : FDist) : TagD :=
   tagWitness Eq D1 D2 (tagReorderDty D1 D2) Fin.val Fin.val
 
@@ -903,8 +909,8 @@ as a tagged evidence: the routing evidence of rule (Dlet), and the left
 operand of the routing evidence of rule (D::μ). -/
 scoped infixl:69 (name := tagReorderDStx) " ∥ᵗ " => tagReorderD
 
-/-- The tagged reordering evidence, unfolded: the cells and formula of `∥`,
-and the projections of each cell as tags. -/
+/-- The tagged reordering evidence, unfolded: the number of entries and the
+formula of `∥`, and the projections of each entry as tags. -/
 theorem tagReorderD_eq (D1 D2 : FDist) :
     tagReorderD D1 D2 = ⟨(reorderD D1 D2).n, tagReorderDty D1 D2, (reorderD D1 D2).C,
       fun c => (reorderDL D1 D2 c).val, fun c => (reorderDR D1 D2 c).val⟩ := rfl
@@ -994,10 +1000,10 @@ inductive Red : Tm → ℕ → DConf → Prop where
       Red ((Tm.ascT d m Dres).subErr w Dres) k2 V →
       Red (.app (.asc ε (.lam σ' m) (.arrow σa Dres)) v) (k1+k2+1) V
   -- (Dlet): the routing evidence is `V.confF ∥ᵗ μ`, with `μ = ⟨n, ty, C⟩` the
-  -- static type of the bound term. Its cell `c` pairs the outcome `reorderDL … c` of `V`
+  -- static type of the bound term. Its entry `c` pairs the outcome `reorderDL … c` of `V`
   -- with the entry `reorderDR … c` of `μ` (the article's `l(ω_c)` and
   -- `r(ω_c)`, read as indices): the rule coerces that outcome to that entry
-  -- with the cell's evidence and runs that entry's body; the result is the
+  -- with the evidence of `c` and runs that entry's body; the result is the
   -- weighted sum `DConf.wsum` over the formula of the routing evidence
   | dlet : ∀ {m n} {ty : Fin n → FTy} {C : (Fin n → ℝ) → Prop} {ns : Fin n → Tm}
       {k1 k2} {V : DConf}
@@ -1014,12 +1020,12 @@ inductive Red : Tm → ℕ → DConf → Prop where
       Red (.letin m n ns) (k1+k2+1) (DConf.wsum (tagReorderD V.confF ⟨n, ty, C⟩).toF.C Vk)
   -- (D::μ), first case: `εd` is valid for `μ ∼̇ μb` (Definition 9), with `μ`
   -- the static type of `m`, and the routing evidence is `(V.confF ∥ᵗ μ) ∘ εd`;
-  -- the rule fires when its formula is satisfiable. Its cell `c` comes from
-  -- the cell `meetDL … c` of the reordering, which names the outcome
-  -- `reorderDL … (meetDL … c)` of `V`, and from the cell `meetDR … c` of
-  -- `εd`, whose right tag is the cell's right tag and names an entry of `μb`
+  -- the rule fires when its formula is satisfiable. Its entry `c` comes from
+  -- the entry `meetDL … c` of the reordering, which names the outcome
+  -- `reorderDL … (meetDL … c)` of `V`, and from the entry `meetDR … c` of
+  -- `εd`, whose right tag is the right tag of `c` and names an entry of `μb`
   -- by the validity of `εd`. The rule coerces that outcome to that entry
-  -- with the cell's evidence
+  -- with the evidence of `c`
   | dascD : ∀ {εd : TagD} {m μ μb k1} {V : DConf}
       {wv : Fin (emeetD (tagReorderD V.confF μ) εd).n → Val}
       (hval : εd.HValidFor μ μb),

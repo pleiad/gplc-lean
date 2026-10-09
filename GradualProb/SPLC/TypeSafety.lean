@@ -168,8 +168,8 @@ theorem all_appendT {P : Val → Ty → Prop} {X Y : TypedDistVal} (hX : All P X
   · simpa [appendT, DistVal.append, Fin.append_left] using hX i
   · simpa [appendT, DistVal.append, Fin.append_right] using hY i
 
-/-- A pointwise predicate that holds on every cell holds on the weighted sum of a
-list. -/
+/-- A pointwise predicate that holds on every summand holds on the weighted sum
+of a list. -/
 theorem all_wsumListT {P : Val → Ty → Prop} : ∀ (L : List (ℝ × TypedDistVal)),
     (∀ c ∈ L, All P c.2) → All P (wsumListT L)
   | [], _ => fun i => Fin.elim0 i
@@ -177,8 +177,8 @@ theorem all_wsumListT {P : Val → Ty → Prop} : ∀ (L : List (ℝ × TypedDis
       all_appendT (all_scaleT (h (a, X) (List.mem_cons_self)))
         (all_wsumListT rest (fun c hc => h c (List.mem_cons_of_mem _ hc)))
 
-/-- A pointwise predicate that holds on every cell holds on the weighted sum of a
-finite family. -/
+/-- A pointwise predicate that holds on every summand holds on the weighted sum
+of a finite family. -/
 theorem all_wsumT {P : Val → Ty → Prop} {K : ℕ} (cells : Fin K → ℝ × TypedDistVal)
     (h : ∀ j, All P (cells j).2) : All P (wsumT cells) := by
   refine all_wsumListT _ ?_

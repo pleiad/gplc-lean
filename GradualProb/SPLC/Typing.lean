@@ -446,7 +446,7 @@ theorem dist_dentries : ∀ T : DTy, DTy.dist (dentries T) = T
   | .dist _ => rfl
 
 /-- The entries of `Σ_j p_j · T_j` as a family over the dependent concatenation
-of the entry lists of the `T_j`: the cell `κ` holds the entry
+of the entry lists of the `T_j`: the entry at position `κ` is the entry
 `(finSigmaFinEquiv.symm κ).2` of the block `(finSigmaFinEquiv.symm κ).1`,
 scaled by the weight of the block. -/
 theorem dentries_sumScaled_ofFn {nn : ℕ} (f : Fin nn → ℝ × DTy) :
